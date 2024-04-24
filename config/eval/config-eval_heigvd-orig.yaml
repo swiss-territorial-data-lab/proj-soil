@@ -1,0 +1,74 @@
+########################################################################
+# Configuration file to prepare the heig-vd predictions for evaluation #
+########################################################################
+
+
+reclassify.py:
+  source_folder: /proj-soil/data/heig-vd/99-inference/inference_heigvd_val-seed6-adj/heigvd-orig-10cm/pred
+  target_folder: /proj-soil/data/heig-vd/99-inference/inference_heigvd_val-seed6-adj/heigvd-orig-10cm/reclassified
+  mapping: {
+    0: 1, 
+    1: 2, 
+    2: 3, 
+    3: 5, 
+    4: 6, 
+    5: 8, 
+    6: 8,
+    7: 8, 
+    8: 9, 
+    9: 8, 
+    10: 10, 
+    11: 10, 
+    12: 2, 
+  }
+  
+  log_file: /proj-soil/logs/reclassify.log
+
+
+mosaic_contiguous.py: 
+  input_folder: /proj-soil/data/heig-vd/1-reclassified
+  output_folder:  /proj-soil/data/heig-vd/2-mosaic_contiguous
+  crs: "EPSG:2056"
+  dtype: "uint8"
+  log_file: /proj-soil/logs/mosaic_contiguous.log
+  otb_log: /proj-soil/logs/OTB_log
+  otb_installation: /OTB-8.1.1-Linux64/
+
+
+cut_tiff_to_grid.py:
+  tiff_folder: /proj-soil/data/heig-vd/2-mosaic_contiguous
+  out_folder: /proj-soil/data/heig-vd/3-cut_to_grid/512px_gt20240216_val-test/heig-vd
+  grid_path: /proj-soil/data/heig-vd_finetuned/grids_51-2m_gt20240216_val-test.gpkg
+  cell_length: 512
+  # mask_path: /proj-soil/data/GT/20231004/0-cleaned
+  mask_path: 
+  id_column: id
+  log_file: /proj-soil/logs/cut_tiff_to_grid.log
+
+
+mask_tiffs.py:
+  source_folder: /proj-soil/data/heig-vd/3-cut_to_grid/1024px_extent1/heig-vd
+  target_folder: /proj-soil/data/heig-vd/3-cut_to_grid/1024px_extent1-masked/heig-vd
+  mask: /proj-soil/data/GT/GT_extent1_batiments.gpkg
+  nodata: 255
+  log_file: /proj-soil/logs/mask_tiffs.log
+
+
+calculate_metrics.py:
+  pred_folder: /proj-soil/data/heig-vd/99-inference_reclassified/val-seed6-adj
+  gt_folder: /proj-soil/data/GT/20240216/5-reclassified/2048px_seed6-adj-val
+  metric_csv_path_multiclass: /Users/nicibe/Documents/AutoDelete/asdf.csv
+  metric_csv_path_binary:     /proj-soil/csv/metrics/metrics_heig-vd_binary_12cl-seed6-adj.csv
+  count_csv_path_multiclass: /Users/nicibe/Documents/AutoDelete/asdf.csv
+  count_csv_path_binary:     /proj-soil/csv/counts/counts_heig_vd_binary_12cl-seed6-adj.csv
+  conf_matrix_path_multiclass: /Users/nicibe/Documents/AutoDelete/asdf.png
+  conf_matrix_path_binary:     /proj-soil/figures/conf_matrices/cm_heigvd_bn_12cl-seed6-adj.png
+  conf_matrix_model: heig-vd_10cm
+  classes: [batiment, surface_non_beton, surface_beton, eau_bassin,
+            roche_dure_meuble, eau_naturelle, sol_neige, sol_vegetalise,
+            sol_vigne, sol_agricole, serre_permanente]
+  soil_classes: [7, 8, 9, 10]
+  create_cm: True
+  same_names: True
+  exclude_ids: []
+  log_file: /proj-soil/logs/calculate_metrics.log

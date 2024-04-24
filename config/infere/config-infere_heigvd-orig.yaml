@@ -1,0 +1,59 @@
+rescale_tif.py:
+  tiff_folder: /proj-soil/data/heigvd_data/swissimage10cm/10cm/AOI24
+  out_folder:  /proj-soil/data/heigvd_data/swissimage10cm/80cm/AOI24
+  target_res: 0.8
+  log_file: /proj-soil/proj-soil/rescale_tif.log
+
+clip_tiffs.py:
+  source_folder: 
+  target_folder: 
+  clip_shapefile: /proj-soil/data/GT/20231004/gt_bboxes_buffer1m.gpkg
+  log_file: /proj-soil/proj-soil/logs/clip_tiffs.log
+
+rgbi2rgb.py:
+  source_folder: /proj-soil/data/img/scratch_full/rgbi 
+  target_folder: /proj-soil/data/img/scratch_full/rgb
+  log_file: /proj-soil/proj-soil/logs/rgbi2rgb.log
+
+reclassify.py:
+  source_folder: /proj-soil/data/heigvd_data/output/inference_large/10cm/upper/stride512
+  target_folder: /proj-soil/data/heigvd_data/output/inference_large/10cm/upper/stride512_reclass
+  mapping: {
+    0: 1, 1: 2, 2: 3, 3: 5, 4: 6, 5: 8, 6: 8,7: 8, 8: 9, 9: 8,
+    10: 10, 11: 10, 12: 4, 13: 7, 14: 8, 15: 8, 16: 8, 17: 11
+  }
+  log_file: /proj-soil/proj-soil/reclassify.log
+
+# # scratch
+# cut_tiff_to_grid.py:
+#   tiff_folder: /proj-soil/data/scratch/horizontal_scratch_mosaics-rgb/2-10cm
+#   out_folder: /proj-soil/data/scratch/horizontal_scratch_mosaics-rgb/3-cut_to_grid/2048px
+#   grid_path: /proj-soil/data/heig-vd_finetuned/recursive_grids_max204-8m_204-8m.gpkg
+#   grid_query: "split == 'val' & depth == 2"
+#   cell_length: 2048
+#   mask_path: 
+#   id_column: str_ids
+#   log_file: /proj-soil/proj-soil/logs/cut_tiff_to_grid.log
+
+# GT
+cut_tiff_to_grid.py:
+  tiff_folder: /proj-soil/data/GT/20240216/3-rasterized-12cl
+  out_folder: /proj-soil/data/GT/20240216/4-cut-to-grid-12cl/2048px
+  grid_path: /proj-soil/data/heig-vd_finetuned/recursive_grids_max204-8m_204-8m.gpkg
+  grid_query: "split == 'val' & depth == 2"
+  cell_length: 2048
+  mask_path: 
+  id_column: str_ids
+  log_file: /proj-soil/proj-soil/logs/cut_tiff_to_grid.log
+
+infere_heigvd.py:
+  config: /proj-soil/scripts/heigvd/model/mask2former_beit_adapter_large_512_160k_flair_ss.py
+  checkpoint: /proj-soil/data/training/M2F_ViTlarge_best_mIoU_iter_160000.pth
+  source_folder: [/proj-soil/data/scratch_val-seed6-adj_large]
+  target_folder: [/proj-soil/data/inference_heigvd_val-seed6-adj/10cm/heigvd-orig]
+  stride: [512]
+  side_length: [[2048, 2048]]
+  device: "cuda:0"
+  palette: None
+  log_file: /proj-soil/logs/infere_heigvd.log
+

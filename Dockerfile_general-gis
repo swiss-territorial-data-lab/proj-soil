@@ -1,0 +1,29 @@
+FROM ghcr.io/osgeo/gdal:ubuntu-small-latest
+
+RUN chmod 777 /tmp
+RUN apt-get update
+RUN apt-get install python3-pip -y
+
+
+# install requirements
+COPY requirements_evaluation.txt .
+RUN pip install -r requirements_evaluation.txt
+
+RUN apt-get install -y libgl1-mesa-glx
+RUN apt-get install -y wget
+RUN apt-get install -y file
+RUN wget https://www.orfeo-toolbox.org/packages/archives/OTB/OTB-8.1.1-Linux64.run
+RUN chmod +x OTB-8.1.1-Linux64.run
+RUN ./OTB-8.1.1-Linux64.run
+RUN apt-get update
+
+RUN mkdir proj-soils
+WORKDIR /proj-soils
+
+CMD jupyter lab --allow-root --ip 0.0.0.0 --port 8888 --no-browser --notebook-dir .
+
+# For debuggin modus
+# RUN pip install debugpy
+# CMD ["python","-m","debugpy","--listen","0.0.0.0:5678","--wait-for-client","scripts/utilities/rgbi2rgb.py","--config_file","config/train/config-train_scratch-10cm.yaml"]
+
+# CMD /bin/bash

@@ -1,0 +1,12 @@
+geopandas
+grass
+loguru
+matplotlib
+numpy
+opencv-python
+pandas
+rasterio
+scikit-learn
+shapely
+jupyter
+seaborn

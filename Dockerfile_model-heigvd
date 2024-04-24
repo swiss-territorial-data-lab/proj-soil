@@ -1,0 +1,42 @@
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04 as base
+
+# To deactivate interaction
+ENV DEBIAN_FRONTEND noninteractive
+RUN chmod 777 /tmp
+RUN apt update && apt install -y tcl
+
+########################################################################################################################
+# Install python and pip
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y python3 python3-pip wget nano git \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# Install ViT library with model
+RUN git clone https://github.com/czczup/ViT-Adapter.git
+
+########################################################################################################################
+# Install dep with pip
+RUN pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 --index-url https://download.pytorch.org/whl/cu111
+RUN pip install ninja==1.11.1.1 poetry 
+RUN pip install mmcv-full==1.4.2 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.9/index.html
+RUN pip install timm==0.4.12 mmdet==2.22.0 mmsegmentation==0.20.2
+
+#These commands install the cv2 dependencies that are normally present on the local machine, but might be missing in Docker container causing issue
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+RUN pip install scipy==1.10.1
+
+RUN pip install debugpy
+RUN pip install rasterio
+RUN pip install loguru
+RUN pip install yapf==0.40.1
+RUN pip install tensorboard
+
+WORKDIR "/ViT-Adapter/segmentation"
+RUN cp -r ../detection/ops .
+RUN rm -r ../detection
+
+COPY /scripts/heigvd/code/__init__.py /ViT-Adapter/segmentation/mmseg_custom/datasets/__init__.py
+
+CMD /bin/bash
+

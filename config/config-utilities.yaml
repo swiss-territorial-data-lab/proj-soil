@@ -1,0 +1,43 @@
+#####################################################################
+###########     configuration file to ???     ############ 
+#####################################################################
+# What do the scripts do
+
+
+# $-Process and vectorize raster data using a series of GRASS GIS operations.
+vectorize_results.py: 
+  crs: "EPSG:2056"                 # Projection of the input file
+  input_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/OFS/2nd/1-reclassified/
+  output_folder:  /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/OFS/2nd/99-vectorized/
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/vectorize_results.log
+  # input_folder: /proj-soils/data/heig-vd/3-cut_to_grid/IGN_firstdelivery_extent/1024/heig-vd/
+  # output_folder:  /proj-soils/data/heig-vd/
+  # log_file: /proj-soils/proj-soils/logs/vectorize_results.log
+
+# for scratch images
+cut_tiff_to_grid.py:
+  tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics/band-harmo_large-feather/clipped_to_aois
+  out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/cut_to_grid-1024px
+  grid_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20231004/grids_104-2m_all_v2.gpkg
+  cell_length: 1024
+  mask_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20231004/0-cleaned
+  id_column: id
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/cut_tiff_to_grid.log
+
+compress_tiffs.py:
+  source_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/clipped_to_aois
+  target_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/clipped_to_aois_compressed
+  compression_method: "lzw"
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/compress_tiffs.log
+
+create_recursive_grid.py:
+  source_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/0-0-snapped
+  target_path: /Users/nicibe/Documents/AutoDelete/recursive_grids_max204-8m.gpkg
+  depth: 2
+  max_gridsize: 204.8
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/create_recursive_grid.log
+
+rgbi2rgb.py:
+  source_folder: /Users/nicibe/Documents/AutoDelete/tif_test
+  target_folder: /Users/nicibe/Documents/AutoDelete/tif_test/output
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/rgbi2rgb.log
