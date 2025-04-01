@@ -36,6 +36,8 @@ Here is the ordered procedures performed during the project:
   * [2. Inference](#2-inference)
   * [3. Post-processing](#3-post-processing)
 
+Please find here the model weights: https://sftpgo.stdl.ch/web/client/pubshares/2HvZAv4VegLzxmXSPbmUeb/browse. The models correspond to the ones evaluated in Figure 19 of the [technical documentation](https://tech.stdl.ch/PROJ-SOILS/#61-evaluation).
+
 ## Evaluation Pipeline
 
 The performance of 3 sets of models can be evaluated: 6 models of the french National Institute of Geographic and Forest Information (IGN), 1 model of the Institute of Territorial Engineering (INSIT) at the School of Engineering and Management (HEIG-VD), and 1 model of the Federal Statistical Office (OFS). All the needed packages are accessible from the Docker container `general-gis`.
