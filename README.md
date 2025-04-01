@@ -1,7 +1,7 @@
 
 # Automatic segmentation of soils
 
-This repo contains the code for the STDL SAS-project (SAS for "Segmentation automatique du sol", automatic segmentation of soils in english) developed in collaboration with the Canton of Fribourg. The general description of the project is available on the [STDL Website](https://www.stdl.ch/fr/Nos-projets/Generation-automatique-d-%252339%253Bune-carte-a-haute-resolution-des-surfaces-de-pleine-terre.htm) and the technical report on the [Tech Website](https://blank.com).
+This repo contains the code for the STDL SAS-project (SAS for "Segmentation automatique du sol", automatic segmentation of soils in english) developed in collaboration with the Canton of Fribourg. The general description of the project is available on the [STDL Website](https://www.stdl.ch/fr/Nos-projets/Generation-automatique-d-%252339%253Bune-carte-a-haute-resolution-des-surfaces-de-pleine-terre.htm) and the technical report on the [Tech Website](https://tech.stdl.ch/PROJ-SOILS/).
 
 ---
 
