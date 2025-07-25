@@ -1,12 +1,9 @@
 
-# GitHub repo for the developement of the Automatic segmentation of soils - SECRET (OFS)!
+# Automatic segmentation of soils
 
-!!! This repo shall not be disclosed because the OFS code is confidential !!!
+This folder contains the code for the first phase of the STDL SAS-project, developed in collaboration with the Canton of Fribourg. Sections 1 to 9 of the technical report on the [Tech Website](https://tech.stdl.ch/PROJ-SOILS/) correspond to this phase. 
 
-This repo contains the code for the STDL SAS-project (SAS for "Segmentation automatique du sol", automatic segmentation of soils in english) developed in collaboration with the Canton of Fribourg and the Canton of Vaud. The general description of the project is available on the [STDL website](https://www.stdl.ch/fr/Nos-projets/Generation-automatique-d-%252339%253Bune-carte-a-haute-resolution-des-surfaces-de-pleine-terre.htm) and the technical report on the [tech website](https://tech.stdl.ch/PROJ-SOILS/).
-
-
-On top of the explorative developments documented in the folder [Exploration of existing models](##-expoloration-of-existig-models), a productive pipeline (PP) has been put together to upscale the inferences. It can be run in the `model-heigvd` Docker container. 
+Disclaimer:  Path maintenance, data availability and reproducibility are not guaranteed.
 
 ---
 
@@ -25,84 +22,56 @@ Hints to use Docker are given in the [Running Docker section](#running-docker).
 
 The `scripts/` folder consists of:
 
-2. The `heigvd/` folder that contains the code to run the HEIG-VD DL-model and the model itself.
-4. The`utilities/` folder that contains the functions that are used in the pipelines
+1. Jupyter notebooks that run the pipelines in the correct order using Jupyter's command line interface (starting cells with a '!')
+2. The `heigvd/` folder that contains the code to run the DL-model of the Institute of Territorial Engineering (INSIT) at the School of Engineering and Management (HEIG-VD) and the model itself.
+3. The`utilities/` folder that contains the functions that are used in the pipelines
 
 More info on the content of these folders is given in the [Folder Structure](#folder-structure) section.
 
-## Environment installation
+Here is the ordered procedures performed during the project:
 
-In order to run the model (either for inference or training), additional dependencies have to be installed in the Docker container. The following steps have to be done when first running the container:
+* [Evaluation Pipeline](#evaluation-pipeline)
+* [Training Pipeline](#training-pipeline)
+  * [1. Data Preparation](#1-data-preparation)
+  * [2. Training](#2-training)
+* [Inference of HEIG-VD model](#inference-of-heig-vd-model)
+  * [1. Preparation](#1-preparation)
+  * [2. Inference](#2-inference)
+  * [3. Post-processing](#3-post-processing)
 
-```bash
-docker compose up -d model-heigvd
-docker ps
-docker exec -it <CONTAINER ID> /bin/bash
-cd /ViT-Adapter/segmentation/ops
-python3 setup.py build install
-cd /proj-soils
-```
+Please find here the model weights: https://sftpgo.stdl.ch/web/client/pubshares/2HvZAv4VegLzxmXSPbmUeb/browse. The models correspond to the ones evaluated in Figure 19 of the [technical documentation](https://tech.stdl.ch/PROJ-SOILS/#61-evaluation).
 
-## Productive inference
-On top of the explorative developments documented in the folder `model_exploration` as well as on the Sections 1 to 9 of the tech website, a productive pipeline (PP) has been put together to upscale the inferences. It can be run in the `model-heigvd` Docker container. 
+## Evaluation Pipeline
 
-0. (Alternative a) 0. On the [SWISSIMAGE 10 cm website](https://www.swisstopo.admin.ch/en/orthoimage-swissimage-10), select the tiles in the area of interest and save the generated CSV file containing the download links in your `data` folder. Download SWISSIMAGE 10 cm tiles with wget `wget -i file_with_url_link.csv`
-```bash
-mkdir data/swi
-cd data/swi
-wget -i ../ch.swisstopo.swissimage-*.csv
-cd /proj-soils
-```
+The performance of 3 sets of models can be evaluated: 6 models of the french National Institute of Geographic and Forest Information (IGN), 1 model of the Institute of Territorial Engineering (INSIT) at the School of Engineering and Management (HEIG-VD), and 1 model of the Federal Statistical Office (OFS). All the needed packages are accessible from the Docker container `general-gis`.
 
-0. (Alternative b) If the wanted year of SWISSIMAGE 10 cm is no more available,  `utilities/wmts_geoquery.py` can be used to download tiles from the [SWISSIMAGE Time Travel service](https://www.swisstopo.admin.ch/en/timetravel-aerial-images), passing the script inputs with `config/config-utilities.yaml`. For the given tile extent (in vector format) to download, on should give the number of pixels allowing the output raster to have the desired resolution: 10000 for a 1km-square tile result in an ouptut raster having a 10 cm resolution. 
+Use Jupyter notebooks, file name starting with '0-', to run the pipelines in the correct order using Jupyter's commanline interface (starting cells with a '!').
+Source and target folders need to be given in the first cell.
 
-`python3 scripts/utilities/wmts_geoquery.py --config_file config/config-utilities.yaml`
+1. Preparation
+    * 0-0-eval_prep_gt.ipynb  
+    * 0-0-eval_prep_heigvd.ipynb
+    * 0-0-eval_prep_IGN.ipynb
+    * 0-0-eval_prep_OFS.ipynb
+2. Evaluation
+    * 0-1-eval_calculate_metrics.ipynb
+3. Visualization
+    * 0-2-visualizations.iypnb
 
-2. Build a VRT of the downloaded tiles with `utilities/build_vrt.py` and `config-pp.yaml`:
-`python3 scripts/utilities/build_vrt.py --config_file config/config-pp.yaml`
+## Training Pipeline
 
-3. Generate a grid of subtiles and create subtiles from the VRT with `utilities/from_bpo/prepare_entire_plans.py`, `utilities/constants.py` and  `config-pp.yaml`:
-  `python3 scripts/utilities/from_bpo/prepare_entire_plans.py --config_file config/config-pp.yaml`
-
-The following steps can be run at once using `utilities/pp.py` with `/proj-soils/config/config-pp.yaml`, or separetely: 
-
-4. Infer on the subtiles with `heigvd/code/infere_heigvd.py` and `/proj-soils/config/infere/config-pp.yaml`
-With `utilities/constants.py`, one has the possibility to output the prediction only (`LOGIT=False`) or the predictions and a confidence index (`LOGIT=True`). Discover more about it in the [technical documentation](https://tech.stdl.ch/PROJ-SOILS/#post_processing)
-5. Cut the overlapping border of subtiles with `utilities/cut_border.py` and `/proj-soils/config/config-pp.yaml`
-6. Correct the subtiles that have square artefacts with `utilities/post_processing_embedding.py` and `/proj-soils/config/config-pp.yaml`
-7. Mosaic the corrected subtiles `utilities/mosaic.py` and `/proj-soils/config/config-pp.yaml`
-8. `utilities/build_vrt.py` can be used _a discrétion_ to generate a VRT linking every 1km-mosaic. 
-
-Additionnally, for the same region as previously processed, the another generation of SWISSIMAGE 10 cm can be processed, including a monitoring step (in `constant.py`, `MONITORING=True`) with the previous results. 
-
-## Finetune your own model
+The training pipeline consists of 2 steps:
 
 ### 1. Data preparation
 
-The script `scripts/1-0-train_prep_fr_vd.ipynb` prepares the data for training. It calls different functions from the `utilities/` folder and uses the config file `config/train/config-train_fr_vd_gt.yaml`. The data is saved in the `datasets/` directory. All the needed packages are accessible from the Docker container `general-gis`.
+The script `1-0-train_prep*.ipynb` prepares the data for training. It calls different functions from the `utilities/` folder and uses config files from the `config/train/` folder. The data is saved in the `datasets/` directory. All the needed packages are accessible from the Docker container `general-gis`.
 
-```bash
-docker compose up -d general-gis
-docker ps
-docker exec -it <CONTAINER ID> /bin/bash
-jupyter server list
-```
-Open the link of the listed Jupyter notebook. You have to change the begin of the hyper link, `<CONNECTION ID>` to `localhost`
-Example: `http://<CONNECTION ID>:8888/?token=5b95dd37dc81e3df752d455ff7505bf636798eca8831ea25`
+Note that the split into training and validation data is done randomly in the script `random_split.py`. The random seed 6 was found to be the one that distributes the classes most evenly. However, afterwards, some ID's were manually redistributed to create an even more balanced split.
 
 The dataset structure is as follows:
 
 ```text
 dataset/
-    ├── test/
-    │   ├── ipt/
-    │   │   ├── 0.tif
-    │   │   ├── 1.tif
-    │   │   └── ...
-    │   └── tgt/
-    │       ├── 0.tif
-    │       ├── 1.tif
-    │       └── ...
     ├── train/
     │   ├── ipt/
     │   │   ├── 0.tif
@@ -125,15 +94,36 @@ dataset/
 
 ### 2. Training
 
-The training is done using the `train.py` script, that lies in the directory `/ViT-Adapter/segmentation/` within the Docker container. The only parameter that has to be specified is the path to the config file, which specifies the model, the paths to the datasets, the optimizer, the loss function, and the training parameters. The config file is located at `/proj-soils/scripts/heigvd/model/mask2former_beit_adapter_large_512.py`. The config file corresponding to the training will be saved with the training outputs. During training, the process is logged in the `/proj-soils/data/heig-vd_logs_checkpoints` directory (in log, json, and tensorboard format). Depending on the config file, the checkpoints are also saved in this directory: always the most recent one, and the best one (based on the validation mIoU).
+Training is conducted in the Docker container `model-heigvd`.
 
-`python3 /ViT-Adapter/segmentation/train.py /proj-soils/scripts/heigvd/model/mask2former_beit_adapter_large_512.py`
+Before training, additional dependencies have to be installed. The following steps have to be done when first running the container:
 
-After training visualize the results in tensorboard:
 ```bash
-
-
+cd /ViT-Adapter/segmentation/ops
+python3 setup.py build install
 ```
+
+The training is done using the `train.py` script, that lies in the directory `/ViT-Adapter/segmentation/` within the Docker container. The only parameter that has to be specified is the path to the config file, which specifies  the model, the paths to the datasets, the optimizer, the loss function, and the training parameters. The config file is located at `/proj-soils/scripts/heigvd/model/mask2former_beit_adapter_large_512_*.py`. During training, the process is logged in the `/proj-soils/data/heig-vd_logs_checkpoints` directory (in log, json, and tensorboard format). Depending on the config file, the checkpoints are also saved in this directory: always the most recent one, and the best one (based on the validation mIoU).
+
+## Inference of HEIG-VD model
+
+All necessary configurations are stored in `/proj-soils/config/config-infere_heig-vd.yaml`.
+
+### 1. Preparation
+
+1. **Clip to AOI**: The script `clip_tiffs.py` clipps a geotiff by a specified geopackage.
+
+2. **Convert to RGB**: The script `rgbi2rgb.py` converts a 4-band geotiff to a 3-band geotiff. This step isn't necessary, if SWISSIMAGE10cm imagery is used as input. Note that the checkpoint `M2F_ViTlarge_best_mIoU_iter_160000.pth` has been trained on [FLAIR-1](https://ignf.github.io/FLAIR/#FLAIR1) imagery.
+
+3. (Optional) **Rescale**: If experiments regarding the input resolution are conducted, the script `rescale_tiffs.py` can used to rescale the input images.
+
+### 2. Inference
+
+Inference of the HEIG-VD model is conducted in the `model-heigvd` container, using the script located at `/proj-soils/scripts/heigvd/code/infere_heigvd.py`. All the parameters are specified in the config file. The output is saved in the specified directory. Note that multiple input, output, side_length, and stride values can be stated. If more than one input directory is given, it will loop over the specified directories, using the output, stride, and side_length parameters at the same index as the input directory.
+
+### 3. Post-processing
+
+As the HEIG-VD model has been trained on the French FLAIR-1 classes, the output of the original checkpoint `M2F_ViTlarge_best_mIoU_iter_160000.pth` has to be reclassified to our own classes. This is done using the script reclassify.py. The parameters are specified in the config file `config-infere_heigvd-orig.yaml`.
 
 ## Running Docker
 
@@ -143,10 +133,9 @@ After the container runs:
 
 1. running containers can be listed using `docker ps`
 2. copy the container id of the relevant container and use it for `docker exec -it <container_id> bash`
-3. running and stopped containers can be listed using `docker ps -a`
-4. stopped containers can be started using `docker start <container_id>`
 
 Note that the `general-gis` container is by default set up to run a Jupyter server at port 8888. Thus, for this container, the command `docker compose up -d general-gis` is enough to expose the server to the local computer. Within the Docker container, one can list the Jupyter server to find the corresponding link `jupyter server list`.
+<!-- markdownlint-configure-file { "MD051": false} -->
 
 ## Folder Structure
 
@@ -156,42 +145,49 @@ The folder structure of this project is as follows:
 proj-soils
 │
 ├── config
-│   │
-│   ├── infere
-│   │   Configuration files concerning the inference pipeline for exploration purposes
-│   │
-│   ├── train
-│   │   Configuration files concerning the training pipeline for exploration purposes
-│   │
-│   └── *.yaml: productive config files
+│   ├── eval
+│   │   Configuration files concerning the evaluation pipeline
+│   │
+│   ├── infere
+│   │   Configuration files concerning the inference pipeline
+│   │
+│   └── train
+│       Configuration files concerning the training pipeline
 │
 └── scripts
+    ├── Jupyter notebooks that run the pipelines in the correct order
+    │   using Jupyter's command line interface (starting cells with a '!') 
     │
     ├── heigvd
-    │   ├── code
+    │   ├── code
     │   │   ├── __init__.py: Is copied to the Docker container during
     │   │   │   the build process to include the dataset definition
     │   │   │   (proj_soils.py) for mmsegmentation
     │   │   │
-    │   │   ├── proj_soils.py: Dataset definition for mmsegmentation
+    │   │   ├── proj_soils.py: Dataset definition for mmsegmentation
     │   │   │
-    │   │   ├── infere_heigvd.py: Script to call the HEIG-VD model
+    │   │   ├── infere_heigvd.py: Script to call the HEIG-VD model
     │   │   │
-    │   │   └── train.py: Script to train the HEIG-VD model, is mounted
+    │   │   ├── infere_heigvd.ipynb: Jupyter notebook to call the HEIG-VD for debug purposes
+    │   │   │
+    │   │   └── train.py: Script to train the HEIG-VD model, is mounted
     │   │       in the Docker container at /ViT-Adapter/segmentation/
     │   │
-    │   └── model
-    │       ├── encoder_decoder_mask2former.py
+    │   └── model
+    │       ├── encoder_decoder_mask2former.py
     │       │   Source code for the HEIG-VD model, is mounted in the 
     │       │   Docker container at /ViT-Adapter/segmentation/mmseg_custom/models/segmentors/
     │       │
-    │       └── mask2former_beit_adapter_large_512_*.py
+    │       └── mask2former_beit_adapter_large_512_160k_proj-soils_12class_*.py
     │           Config files for the HEIG-VD model (for mmsegmentation)
     │
-    ├── model_exploration: Jupyter notebook of the model exploration. 
+    ├── prepare_digitization
+    │   ├── folderstructure4beneficiaries.py
+    │   │   Script to prepare the folder structure for the digitization
+    │   │
+    │   └── mosaic_with_OTB.ipynb: Jupyter notebook to horizontally
+    │       mosaick tiff files using Orfeo Toolbox
     │
-    ├── utilities
-    │   Different scripts that are used in the pipelines
-    │
-    └── *.* files of productive workflows
+    └── utilities
+        Different scripts that are used in the pipelines
 ```
