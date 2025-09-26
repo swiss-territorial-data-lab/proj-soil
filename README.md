@@ -66,7 +66,6 @@ cd /proj-soils
 Commands for steps 1 and 2:
 ```bash
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/build_vrt.py --config_file /proj-soils/config/config-pp.yaml
-
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/from_bpo/prepare_entire_plans.py  --config_file /proj-soils/config/config-pp.yaml
 ```
 
@@ -88,9 +87,7 @@ If you are working with two years on the same area, you may be interested to per
 
 ```bash
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/build_vrt.py --config_file /proj-soils/config/config-pp-monitoring.yaml
-
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/from_bpo/prepare_entire_plans.py  --config_file /proj-soils/config/config-pp-monitoring.yaml
-
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/productive_pipeline.py  --config_file /proj-soils/config/config-pp-monitoring.yaml
 ```
 
@@ -98,7 +95,6 @@ Afterwards, the resulting tiles containing the grouped transitions can be mosaic
 
 ```bash
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/mosaic_grid.py --config_file /proj-soils/config/config-utilities.yaml
-
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/monitoring_count.py --config_file /proj-soils/config/config-utilities.yaml
 ```
 
@@ -188,11 +184,8 @@ Similarly, the script  `utilities/uncertainty_per_tile.py` allows to study the u
 
 ```bash
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /ViT-Adapter/segmentation/infere_heigvd.py --config_file /proj-soils/config/infere/config-infere_heigvd-test.yaml
-
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/reclassify.py --config_file /proj-soils/config/config-utilities.yaml
-
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/metrics_from_cm_per_tile.py --config_file /proj-soils/config/config-utilities.yaml
-
 docker compose run --rm -v <DIR_DATA>:/proj-soils/data -v <DIR_LOGS>:/proj-soils/logs -v <DIR_CONFIG>:/proj-soils/config model-heigvd python3 /app/scripts/utilities/uncertainty_per_tile.py --config_file /proj-soils/config/config-utilities.yaml
 ```
 
