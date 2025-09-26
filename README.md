@@ -1,7 +1,6 @@
 
-# GitHub repo for the developement of the Automatic Segmentation of Soils - SECRET (OFS)!
+# GitHub repo for the developement of the Automatic Segmentation of Soils
 
-!!! This repo shall not be disclosed because the OFS code is confidential !!!
 
 This repo contains the code for the STDL SeB-project - SeB for "Segmentierung des Bodens", automatic segmentation of soils in english - developed in collaboration with the Canton of Fribourg and the Canton of Vaud. The general description of the project is available on the [STDL website](https://www.stdl.ch/fr/Nos-projets/Generation-automatique-d-%252339%253Bune-carte-a-haute-resolution-des-surfaces-de-pleine-terre.htm) and the technical report on the [tech website](https://tech.stdl.ch/PROJ-SOILS/).
 
