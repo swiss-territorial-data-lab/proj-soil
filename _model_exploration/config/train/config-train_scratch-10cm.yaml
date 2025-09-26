@@ -1,0 +1,20 @@
+rgbi2rgb.py:
+  source_folder: /mnt/s3/proj-soils/02_data/2-scratch/0-AOIs/test
+  target_folder: /mnt/s3/proj-soils/02_data/2-scratch/1-rgb/test
+  log_file: log/rgbi2rgb.log
+
+rescale_tif.py:
+  tiff_folder: /proj-soils/data/scratch/1-rgb
+  out_folder: /proj-soils/data/scratch/2-10cm
+  target_res: 0.1
+  log_file: /proj-soils/logs/rescale.log
+
+cut_tiff_to_grid.py:
+  tiff_folder: /proj-soils/data/scratch/2-10cm
+  out_folder: /proj-soils/data/scratch/3-cut-to-grid/10cm/512px
+  grid_path: /proj-soils/data/grids/recursive_grids_max204-8m_51-2m.gpkg
+  grid_query: "depth == 0"
+  cell_length: 512
+  mask_path: 
+  id_column: str_ids
+  log_file: /proj-soils/logs/cut_tiff_to_grid.log

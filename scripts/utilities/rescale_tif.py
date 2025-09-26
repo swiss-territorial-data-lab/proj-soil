@@ -1,4 +1,5 @@
 import rasterio
+import numpy as np
 
 import yaml
 import os
@@ -10,8 +11,6 @@ from loguru import logger
 
 import warnings
 warnings.filterwarnings('ignore')
-
-
 
 
 def rescale_tif(TIFF_FOLDER, TARGET_RES, OUT_FOLDER) -> None:
@@ -45,10 +44,6 @@ def rescale_tif(TIFF_FOLDER, TARGET_RES, OUT_FOLDER) -> None:
             if not file.endswith((".tif", ".tiff")):
                 continue
 
-            # if os.path.exists(os.path.join(OUT_FOLDER, file)):
-            #     continue
-
-
             with rasterio.open(os.path.join(CURRENT_TIFF_FOLDER, file)) as src:
 
                 if round(src.res[0], 2) == CURRENT_TARGET_RES and round(src.res[1], 2) == CURRENT_TARGET_RES:
@@ -72,7 +67,22 @@ def rescale_tif(TIFF_FOLDER, TARGET_RES, OUT_FOLDER) -> None:
                     ),
                     resampling=rasterio.enums.Resampling.nearest
                 )
+        # # Create an empty array for the downsampled image
+        #         data = src.read(1)  # Read first band
+        #         transform = src.transform
+        #         nodata = src.nodata
+        #         arr_interp = np.zeros((tgt_height, tgt_width), dtype=data.dtype)
+        #         for i in range(tgt_height):
+        #             for j in range(tgt_width):
+        #                 row = i * 10 + 10 // 2
+        #                 col = j * 10 + 10 // 2
 
+        #                 # Check bounds
+        #                 if row < data.shape[0] and col < data.shape[1]:
+        #                     arr_interp[i, j] = data[row, col]
+        #                 else:
+        #                     arr_interp[i, j] = nodata if nodata is not None else 0
+                        
                 transform_interp = src.transform * src.transform.scale(
                     (src.width / arr_interp.shape[-1]),
                     (src.height / arr_interp.shape[-2])
@@ -98,7 +108,7 @@ if __name__ == "__main__":
         description="The script...")
     parser.add_argument('-cfg', '--config_file', type=str, 
         help='Framework configuration file', 
-        default="/Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/config/config-proj-vit-40cm.yaml")
+        default="/proj-soils/config/config-utilities.yaml")
     args = parser.parse_args()
 
     # load input parameters
@@ -110,11 +120,6 @@ if __name__ == "__main__":
     TARGET_RES = cfg["target_res"]
     LOG_FILE = cfg["log_file"]
 
-    if not os.path.exists(OUT_FOLDER):
-        os.makedirs(OUT_FOLDER)
-        print(f"The directory {OUT_FOLDER} was created.")
-
-
     # set up logger
     logger.remove()
     logger.add(sys.stdout, level="DEBUG")
@@ -125,6 +130,7 @@ if __name__ == "__main__":
     logger.info(f"{TARGET_RES = }")
     logger.info(f"{LOG_FILE = }")
 
+    os.makedirs(OUT_FOLDER, exist_ok=True)
 
     logger.info("Started Programm")
     rescale_tif(TIFF_FOLDER, TARGET_RES, OUT_FOLDER)

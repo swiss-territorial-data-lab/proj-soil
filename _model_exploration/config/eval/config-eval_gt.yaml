@@ -1,0 +1,66 @@
+#####################################################################
+######  Configuration file to prepare the GT for evaluation   ####### 
+#####################################################################
+
+rasterize_gt.py:
+  polygon_folder: /proj-soils/data/0-GT-BS/0-cleaned/
+  mask_path: 
+  out_tiff_folder: /proj-soils/data_vm_bis/aoi_basel/1-rasterized/
+  field: CLASSE_SEN
+  class_mapping: {
+    batiment: 1,
+    toit_vegetalise: 2,
+    surface_non_beton: 3,
+    surface_beton: 4,
+    eau_bassin: 5,
+    roche_dure_meuble: 6,
+    eau_naturelle: 7,
+    roseliere: 8,
+    sol_neige: 9,
+    sol_vegetalise: 10,
+    surface_riparienne: 11,
+    sol_divers: 12,
+    sol_vigne: 13,
+    sol_agricole: 14,
+    sol_bache: 15,
+    sol_serre_temporaire: 16,
+    serre_permanente: 17
+    }
+  log_file: /proj-soils/logs/rasterize_gt.log
+
+reclassify.py:
+  source_folder: /proj-soils/data_vm_bis/aoi_basel/1-rasterized/
+  target_folder: /proj-soils/data_vm_bis/aoi_basel/2-reclassified/
+  mapping: {
+    0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 5, 6: 4, 7: 5, 8: 6, 9: 7, 10: 8,
+    11: 8, 12: 9, 13: 10, 14: 11, 15: 12, 16: 12, 17: 1
+  }
+  log_file: /proj-soils/logs/reclassify.log
+
+cut_tiff_to_grid.py:
+  tiff_folder: /proj-soils/data_vm_bis/aoi_basel/2-reclassified/
+  out_folder: /proj-soils/data_vm_bis/aoi_basel/3-cut/
+  grid_path: /proj-soils/data_vm_bis/aoi_basel/tiles_51.2_0_0.shp
+  grid_query: 
+  cell_length: 512
+  mask_path: 
+  id_column: RN
+  log_file: /proj-soils/logs/cut_tiff_to_grid.log
+
+# cut_tiff_to_grid.py:
+#   tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/3-rasterized-17cl
+#   out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/4-cut_to_grid-17cl/2048_seed6-adj-val
+#   grid_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd_finetuned/recursive_grids_max204-8m_204-8m.gpkg
+#   grid_query: "split == 'val' & depth == 2"
+#   cell_length: 2048
+#   mask_path: 
+#   id_column: str_ids
+#   log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/cut_tiff_to_grid.log
+
+cut_border_copy.py:
+  source_folder: /proj-soils/0-4-cut/
+  target_folder: /proj-soils/0-5-border/
+  resolution: 0.1 
+  border_width: 25
+  length_center: 462
+  log_file: /proj-soils/logs/cut_border.log

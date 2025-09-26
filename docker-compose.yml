@@ -1,4 +1,3 @@
-version: "3"
 services:
   general-gis:
     # platform: linux/amd64
@@ -10,35 +9,27 @@ services:
     # have to be specified (<local_dir>:<container_dir>)
     volumes:
       - .:/proj-soils/
-      - /mnt/s3/proj-soils/data/:/proj-soils/data/
+      - /mnt/proj-soils/data/:/proj-soils/data/
 
     ports:
       - 8888:8888 # jupyter
-      # - 5678:5678 # debugpy
+      - 5678:5678 # debugpy
 
     stdin_open: true  # docker run -i
     tty: true         # docker run -t
 
-  model-heigvd:
+  inference-ofs:
     # platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile_model-heigvd
-    image: proj-soils_model-heigvd
-    shm_size: '4gb'
-    
+      dockerfile: Dockerfile_inference-ofs
+    image: proj-soils_inference-ofs
+
     # have to be specified (<local_dir>:<container_dir>)
     volumes:
-      - .:/proj-soils
-      - /mnt/s3/proj-soils/data/:/proj-soils/data/
-      # encoder_decoder_mask2former.py
-      - type: bind
-        source: ./scripts/heigvd/model/encoder_decoder_mask2former.py
-        target: /ViT-Adapter/segmentation/mmseg_custom/models/segmentors/encoder_decoder_mask2former.py
-      # proj_soils.py
-      - type: bind
-        source: ./scripts/heigvd/code/proj_soils.py
-        target: /ViT-Adapter/segmentation/mmseg_custom/datasets/proj_soils.py
+      - .:/proj-soils/
+      - /mnt/proj-soils/data/:/proj-soils/data/
+
     deploy:
       resources:
         reservations:
@@ -47,8 +38,22 @@ services:
               count: 1
               capabilities: [gpu]
     ports:
-      - 5678:5678
-      # - 8888:8888
-      
+      - 5678:5678 # debugpy
+      - 6006:6006 # tensorboard
+    #   - 8888:8888 # jupyter
     stdin_open: true  # docker run -i
     tty: true         # docker run -t
+  
+  model-heigvd:
+    build:
+      context: .
+      dockerfile: Dockerfile_model-heigvd
+    image: proj-soils_model-heigvd
+    shm_size: '4gb'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

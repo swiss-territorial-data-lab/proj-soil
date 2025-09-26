@@ -5,7 +5,6 @@ __pycache__/
 
 GeoTIFF2XYZ
 
-
 DEPR
 github_clones
 
@@ -18,11 +17,18 @@ predictions/**/**.pickle
 
 mmsegmentation
 
-logs/
-figures/
 csv/
 debugpy/
+data*/
+env/
+figures/
+geoquery/
+logs/
+reporting/
 
+*.qgz
+*.gpkg
 .vscode
+.png
 
 **.ini

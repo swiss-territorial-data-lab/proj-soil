@@ -1,0 +1,23 @@
+rescale_tif.py:
+  tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/3-rasterized-12cl/10cm
+  out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/3-rasterized-12cl/20cm
+  target_res: 0.2
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/rescale.log
+
+cut_tiff_to_grid.py:
+  tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/3-rasterized-12cl/20cm
+  out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/4-cut-to-grid-12cl/20cm/512px
+  grid_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd_finetuned/recursive_grids_max204-8m.gpkg
+  grid_query: "depth == 1"
+  cell_length: 512
+  mask_path: 
+  id_column: str_ids
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/cut_tiff_to_grid.log
+
+random_split.py:
+  source_ipt_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/3-cut_to_grid/20cm/512px
+  source_tgt_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/4-cut-to-grid-12cl/20cm/512px
+  target_root: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/datasets.nosync/dataset_12cl_seed6-adjusted_multiscale
+  seed: 
+  split_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/datasets.nosync/seed6_adjusted_split.yaml
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/random_split.log

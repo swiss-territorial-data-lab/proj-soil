@@ -1,0 +1,23 @@
+rescale_tif.py:
+  tiff_folder: /proj-soils/data/data_train/im/0-ori-res
+  out_folder: /proj-soils/data/data_train/im/1-10cm
+  target_res: 0.1
+  log_file: /proj-soils/logs/rescale.log
+
+build_vrt.py:
+  source_folder: /proj-soils/data/data_train/im/1-10cm
+  target_folder: /proj-soils/data/data_train/im/1-10cm
+  vrt_name: mosaic.vrt
+  bbox_gpkg:
+  log_file: /proj-soils/logs/build_vrt.log
+
+cut_tiff_to_grid.py:
+  tiff_folder: /proj-soils/data/data_train/im/1-10cm
+  out_folder: /proj-soils/data/data_train/im/2-cut
+  grid_path: /proj-soils/data/data_train/recursive_grids_max51-2m.gpkg
+  grid_query: "depth == 0"
+  cell_length: 512
+  mask_path: 
+  im_file_ext: .vrt
+  id_column: str_ids
+  log_file: /proj-soils/logs/cut_tiff_to_grid.log

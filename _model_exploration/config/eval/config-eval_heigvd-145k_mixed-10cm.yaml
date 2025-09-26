@@ -1,0 +1,19 @@
+calculate_metrics.py:
+  pred_folder: /proj-soils/data/1-HEIG-VD_finetuned/0-inferences/seed6-adjusted_validation-only/mixed_145k/10cm/heigvd-mixed-145k_10cm_corr/batch_0_100 #/proj-soils/data/1-HEIG-VD_finetuned/0-inferences/bs_2018/cut/cut_1_41/
+  gt_folder: /proj-soils/data/0-GT/4-cut-to-grid-12cl/seed6-adj/10cm/2048px_validation-only/test/
+  metric_csv_path_multiclass: /proj-soils/csv/metrics/metrics_heigvd-mixed-145k-10cm_mc_sc_2020_corr_0_100.csv
+  metric_csv_path_binary:     /proj-soils/csv/metrics/metrics_heigvd-mixed-145k-10cm_bn_sc_2020_corr_0_100.csv
+  count_csv_path_multiclass: /proj-soils/csv/counts/counts_heigvd-mixed-145k-10cm_mc_sc_2020_corr_0_100.csv
+  count_csv_path_binary:     /proj-soils/csv/counts/counts_heigvd-mixed-145k-10cm_bn_sc_2020_corr_0_100.csv
+  conf_matrix_path_multiclass: /proj-soils/figures/conf_matrices/cm_heigvd-mixed-145k-10cm_mc_sc_2020_corr_0_100.png
+  conf_matrix_path_binary:     /proj-soils/figures/conf_matrices/cm_heigvd-mixed-145k-10cm_bn_sc_2020_corr_0_100.png
+  conf_matrix_model: ''
+  classes: ["batiment", "surface_non_beton",
+    "surface_beton", "roche_dure_meuble", "eau_naturelle",
+    "roseliere", "sol_neige", "sol_vegetalise",
+    "sol_divers", "sol_vigne", "sol_agricole", "sol_bache"]
+  soil_classes: [7, 8, 9, 10, 11, 12]
+  create_cm: True
+  same_names: True
+  exclude_ids: [] 
+  log_file: /proj-soils/logs/calculate_metrics.log

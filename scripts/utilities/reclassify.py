@@ -48,6 +48,8 @@ def reclassify(SOURCE_FOLDER, TARGET_FOLDER, MAPPING) -> None:
         ar = np.vectorize(MAPPING.__getitem__)(ar)
         
         # Create and save the reclassified raster file
+        if not os.path.exists(TARGET_FOLDER):
+            os.mkdir(TARGET_FOLDER)
         with rasterio.open(os.path.join(TARGET_FOLDER, file), "w", **srcprof) as tgt:
             tgt.write(ar, indexes=1)
 
@@ -60,7 +62,7 @@ if __name__ == "__main__":
         description="The script rasterizes a given polygon")
     parser.add_argument('-cfg', '--config_file', type=str, 
         help='Framework configuration file', 
-        default="/Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/config/config-eval_gt.yaml")
+        default="/proj-soils/config/config-utilities.yaml")
     args = parser.parse_args()
 
     # load input parameters
