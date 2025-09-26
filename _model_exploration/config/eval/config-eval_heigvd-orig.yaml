@@ -4,8 +4,8 @@
 
 
 reclassify.py:
-  source_folder: /proj-soil/data/heig-vd/99-inference/inference_heigvd_val-seed6-adj/heigvd-orig-10cm/pred
-  target_folder: /proj-soil/data/heig-vd/99-inference/inference_heigvd_val-seed6-adj/heigvd-orig-10cm/reclassified
+  source_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd/99-inference/inference_heigvd_val-seed6-adj/heigvd-orig-10cm/pred
+  target_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd/99-inference/inference_heigvd_val-seed6-adj/heigvd-orig-10cm/reclassified
   mapping: {
     0: 1, 
     1: 2, 
@@ -20,48 +20,49 @@ reclassify.py:
     10: 10, 
     11: 10, 
     12: 2, 
-  } 
-  log_file: /proj-soil/logs/reclassify.log
+  }
+  
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/reclassify.log
 
 
 mosaic_contiguous.py: 
-  input_folder: /proj-soil/data/heig-vd/1-reclassified
-  output_folder:  /proj-soil/data/heig-vd/2-mosaic_contiguous
+  input_folder: /proj-soils/data/1-HEIG-VD_finetuned/0-inferences/fr_swissimage/cut
+  output_folder:  /proj-soils/mosaic
   crs: "EPSG:2056"
   dtype: "uint8"
-  log_file: /proj-soil/logs/mosaic_contiguous.log
-  otb_log: /proj-soil/logs/OTB_log
+  log_file: /proj-soils/data/logs/mosaic_contiguous.log
+  otb_log: /proj-soils/data/logs/OTB_log
   otb_installation: /OTB-8.1.1-Linux64/
 
 
 cut_tiff_to_grid.py:
-  tiff_folder: /proj-soil/data/heig-vd/2-mosaic_contiguous
-  out_folder: /proj-soil/data/heig-vd/3-cut_to_grid/512px_gt20240216_val-test/heig-vd
-  grid_path: /proj-soil/data/heig-vd_finetuned/grids_51-2m_gt20240216_val-test.gpkg
+  tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd/2-mosaic_contiguous
+  out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd/3-cut_to_grid/512px_gt20240216_val-test/heig-vd
+  grid_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd_finetuned/grids_51-2m_gt20240216_val-test.gpkg
   cell_length: 512
-  # mask_path: /proj-soil/data/GT/20231004/0-cleaned
+  # mask_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20231004/0-cleaned
   mask_path: 
   id_column: id
-  log_file: /proj-soil/logs/cut_tiff_to_grid.log
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/cut_tiff_to_grid.log
 
 
 mask_tiffs.py:
-  source_folder: /proj-soil/data/heig-vd/3-cut_to_grid/1024px_extent1/heig-vd
-  target_folder: /proj-soil/data/heig-vd/3-cut_to_grid/1024px_extent1-masked/heig-vd
-  mask: /proj-soil/data/GT/GT_extent1_batiments.gpkg
+  source_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd/3-cut_to_grid/1024px_extent1/heig-vd
+  target_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd/3-cut_to_grid/1024px_extent1-masked/heig-vd
+  mask: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/GT_extent1_batiments.gpkg
   nodata: 255
-  log_file: /proj-soil/logs/mask_tiffs.log
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/mask_tiffs.log
 
 
 calculate_metrics.py:
-  pred_folder: /proj-soil/data/heig-vd/99-inference_reclassified/val-seed6-adj
-  gt_folder: /proj-soil/data/GT/20240216/5-reclassified/2048px_seed6-adj-val
+  pred_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd/99-inference_reclassified/val-seed6-adj
+  gt_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/5-reclassified/2048px_seed6-adj-val
   metric_csv_path_multiclass: /Users/nicibe/Documents/AutoDelete/asdf.csv
-  metric_csv_path_binary:     /proj-soil/csv/metrics/metrics_heig-vd_binary_12cl-seed6-adj.csv
+  metric_csv_path_binary:     /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/csv/metrics/metrics_heig-vd_binary_12cl-seed6-adj.csv
   count_csv_path_multiclass: /Users/nicibe/Documents/AutoDelete/asdf.csv
-  count_csv_path_binary:     /proj-soil/csv/counts/counts_heig_vd_binary_12cl-seed6-adj.csv
+  count_csv_path_binary:     /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/csv/counts/counts_heig_vd_binary_12cl-seed6-adj.csv
   conf_matrix_path_multiclass: /Users/nicibe/Documents/AutoDelete/asdf.png
-  conf_matrix_path_binary:     /proj-soil/figures/conf_matrices/cm_heigvd_bn_12cl-seed6-adj.png
+  conf_matrix_path_binary:     /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/figures/conf_matrices/cm_heigvd_bn_12cl-seed6-adj.png
   conf_matrix_model: heig-vd_10cm
   classes: [batiment, surface_non_beton, surface_beton, eau_bassin,
             roche_dure_meuble, eau_naturelle, sol_neige, sol_vegetalise,
@@ -70,4 +71,7 @@ calculate_metrics.py:
   create_cm: True
   same_names: True
   exclude_ids: []
-  log_file: /proj-soil/logs/calculate_metrics.log
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/calculate_metrics.log
+
+
+# ['2562508-1155527-51-51-512-512.tif', '2562508-1155573-51-51-512-512.tif', '2562508-1155619-51-51-512-512.tif', '2562508-1155665-51-51-512-512.tif', '2562508-1155711-51-51-512-512.tif', '2562508-1155757-51-51-512-512.tif', '2562508-1155803-51-51-512-512.tif', '2562508-1155840-51-51-512-512.tif', '2562508-1155849-51-51-512-512.tif', '2562508-1155886-51-51-512-512.tif', '2562508-1155895-51-51-512-512.tif', '2562508-1155932-51-51-512-512.tif', '2562508-1155941-51-51-512-512.tif', '2562508-1155978-51-51-512-512.tif', '2562508-1156024-51-51-512-512.tif', '2562508-1156070-51-51-512-512.tif', '2562508-1156116-51-51-512-512.tif', '2562508-1156162-51-51-512-512.tif', '2562508-1156208-51-51-512-512.tif', '2562508-1156254-51-51-512-512.tif', '2562508-1156300-51-51-512-512.tif', '2562508-1156346-51-51-512-512.tif', '2562508-1156392-51-51-512-512.tif', '2562508-1156438-51-51-512-512.tif', '2562554-1155481-51-51-512-512.tif', '2562554-1155527-51-51-512-512.tif', '2562554-1155573-51-51-512-512.tif', '2562554-1155619-51-51-512-512.tif', '2562554-1155665-51-51-512-512.tif', '2562554-1155711-51-51-512-512.tif', '2562554-1155757-51-51-512-512.tif', '2562554-1155803-51-51-512-512.tif', '2562554-1155840-51-51-512-512.tif', '2562554-1155849-51-51-512-512.tif', '2562554-1155886-51-51-512-512.tif', '2562554-1155895-51-51-512-512.tif', '2562554-1155932-51-51-512-512.tif', '2562554-1155941-51-51-512-512.tif', '2562554-1155978-51-51-512-512.tif', '2562554-1156024-51-51-512-512.tif', '2562554-1156070-51-51-512-512.tif', '2562554-1156116-51-51-512-512.tif', '2562554-1156162-51-51-512-512.tif', '2562554-1156208-51-51-512-512.tif', '2562554-1156254-51-51-512-512.tif', '2562554-1156300-51-51-512-512.tif', '2562554-1156346-51-51-512-512.tif', '2562554-1156392-51-51-512-512.tif', '2562554-1156438-51-51-512-512.tif', '2562600-1155481-51-51-512-512.tif']

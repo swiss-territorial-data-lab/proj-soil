@@ -8,10 +8,22 @@ import sys
 import yaml
 import argparse
 from loguru import logger
+import psutil
 # import warnings
 
-plt.rcParams["text.usetex"] = True
+# plt.rcParams["text.usetex"] = True
 np.set_printoptions(linewidth=500, precision=3, suppress=True)
+
+def print_memory_usage():
+    # Get the memory details
+    memory_info = psutil.virtual_memory()
+    
+    # Print the details
+    # print(f"Total Memory: {memory_info.total / (1024 ** 3):.2f} GB")
+    # print(f"Available Memory: {memory_info.available / (1024 ** 3):.2f} GB")
+    # print(f"Used Memory: {memory_info.used / (1024 ** 3):.2f} GB")
+    print(f"Percentage Used: {memory_info.percent}%")
+    print("")
 
 
 def create_or_append(dic, key, value):
@@ -28,6 +40,15 @@ def create_or_extend(dic, key, value):
         return dic
     dic[key].extend(value)
     return dic
+
+import sys
+def sizeof_fmt(num, suffix='B'):
+    ''' by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified'''
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f %s%s" % (num, 'Yi', suffix)
 
 
 def calculate_metrics(
@@ -90,9 +111,17 @@ def calculate_metrics(
     # store flattened arrays to use for the confusion matrix
     flat_gts = {"multiclass": [], "binary": []}
     flat_preds = {"multiclass": {}, "binary": {}}
+    
+
+    k=0
 
     # Iterate through ground truth label images
     for gt_filename in os.listdir(GT_FOLDER):
+        
+        logger.info(f"{gt_filename} being processed... ")
+        k= k+1
+        logger.info(f"{k}/{len(os.listdir(GT_FOLDER))}")
+
         if not gt_filename.endswith((".tif", ".tiff")):
             continue
 
@@ -108,6 +137,7 @@ def calculate_metrics(
 
         # Iterate through predicted label images to find matching prediction
         for root, dirs, files in os.walk(PRED_FOLDER):
+
             if SAME_NAMES:
                 matching_pred = [
                     prediction for prediction in files if prediction == gt_filename
@@ -128,12 +158,11 @@ def calculate_metrics(
             if flat_switch == 1:
                 # Read the ground truth label image
                 with rasterio.open(os.path.join(GT_FOLDER, gt_filename)) as gt_file:
-                    groundtruth = gt_file.read(1)
+                    groundtruth = gt_file.read(1)#groundtruth = groundtruth.astype(np.float64)#  groundtruth[groundtruth==0]=np.nan
                     groundtruth_binary = np.isin(groundtruth, SOIL_CLASSES)
 
                 flat_gts["multiclass"].extend(list(groundtruth.flatten()))
                 flat_gts["binary"].extend(list(groundtruth_binary.flatten()))
-                flat_switch = 0
 
             # Load and read the predicted label image
             pred_filename = matching_pred[0]
@@ -327,7 +356,7 @@ def calculate_metrics(
         if CREATE_CM:
             from sklearn.metrics import (
                 confusion_matrix,
-            )  # CM: is that a common good practice? Or better to test/load all the packages at the beginning?
+            )
             import pandas as pd
 
             # Compute the confusion matrix
@@ -409,15 +438,14 @@ def calculate_metrics(
                         linewidths=0.5,
                     )
 
-                # ATTENTION: Classes for soil and non-soil are hard-coded here, starting with 6, anding with 6+6=12
                 ax.add_patch(
                     plt.Rectangle(
-                        (6.01, 0.03), 5.98, 5.94, fill=False, edgecolor="red", linewidth=2
+                        (6.01, 0.03), 4, 6, fill=False, edgecolor="red", linewidth=2
                     )
                 )
                 ax.add_patch(
                     plt.Rectangle(
-                        (0.01, 6.03), 5.98, 5.94, fill=False, edgecolor="red", linewidth=2
+                        (0.01, 6.03), 6, 4, fill=False, edgecolor="red", linewidth=2
                     )
                 )
                 # Adjust plot boundaries if needed
@@ -565,7 +593,6 @@ if __name__ == "__main__":
     logger.info(f"{GT_FOLDER = }")
     logger.info(f"{CONF_MATRIX_MODEL = }")
     logger.info(f"{CLASSES = }")
-    logger.info(f"{SOIL_CLASSES = }")
     logger.info(f"{CREATE_CM = }")
     logger.info(f"{SAME_NAMES = }")
     logger.info(f"{METRIC_CSV_PATH_MULTICLASS = }")

@@ -1,0 +1,7 @@
+geopandas
+fiona==1.9.6
+gdal==3.0.4
+pandas
+rasterstats
+scikit-learn
+tqdm

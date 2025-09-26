@@ -39,7 +39,7 @@ def main(
     crop_percentile
     ):
 
-    file_path = '/home/nbeglinger/proj-soils/data/heig-vd_logs_checkpoints/mask2former_beit_adapter_large_512_16k_proj-soils_ss/20240214_110056.log.json'
+    file_path = '/proj-soils/data/heig-vd_logs_checkpoints/mask2former_beit_adapter_large_512_16k_proj-soils_ss/20240214_110056.log.json'
     # read_interval = 10  # Read the file every 10 seconds
     
     data = read_json_file(file_path)

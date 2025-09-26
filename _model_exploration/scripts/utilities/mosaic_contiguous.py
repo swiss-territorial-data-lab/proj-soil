@@ -1,7 +1,8 @@
-import pandas as pd
+import pandas as pd  
 import geopandas as gpd
 
 from shapely.geometry import box
+from rasterio.merge import merge
 
 import rasterio
 
@@ -34,101 +35,127 @@ def mosaic_contiguous(INPUT_FOLDER, OUTPUT_FOLDER, CRS, OTB_LOG, OTB_INSTALLATIO
     Returns:
     - None
     """
-    idx = -1
-    for file in os.listdir(INPUT_FOLDER):
-        if not file.endswith(".tif"):
-            continue
-        idx += 1
 
-        # create shapely box with tiff-bounds
-        with rasterio.open(os.path.join(INPUT_FOLDER, file)) as src:
-            bounds = src.bounds
-            geom = box(*bounds)
+    step = 100
+    print(os.listdir(INPUT_FOLDER))
+    for kth in range(1,len(os.listdir(INPUT_FOLDER)),step): 
+        idx = -1
+        print(os.listdir(INPUT_FOLDER)[kth:kth+step])
+        for file in os.listdir(INPUT_FOLDER)[kth:kth+step]: 
+            if not file.endswith(".tif"):
+                continue
+            idx += 1
+            print(idx)
 
-        if idx == 0:
-            # Initialize GeoDataFrame with the first image's information
-            gdf = gpd.GeoDataFrame(
-                {
-                    "paths": os.path.join(INPUT_FOLDER, file), 
-                    "geometry":[geom]
-                },
-                crs=2056)
-            continue
+            # create shapely box with tiff-bounds
+            with rasterio.open(os.path.join(INPUT_FOLDER, file)) as src:
+                bounds = src.bounds
+                geom = box(*bounds)
 
-        # Concatenate features for the subsequent images
-        gdf = pd.concat((
-            gdf,
-            gpd.GeoDataFrame(
-                {
-                    # "id": idx,
-                    "paths": os.path.join(INPUT_FOLDER, file),
-                    "geometry" :[geom]
-                },
-                crs=2056)
-        ))
-    
-    # dissolve contiguous features and aggregate the paths into a list
-    gdf = (gdf
-        .assign(geometry=gdf.geometry.buffer(0.0001))
-        .dissolve()
-        .explode(index_parts=False)
-        .drop(["paths"], axis=1)
-        .reset_index(drop=True)
-        .sjoin(gdf)
-        .reset_index()
-        .dissolve(by="index", aggfunc=list)
-        .drop(["index_right"], axis=1)
-    )
-    # pathlist: list of lists
-    pathlist = list(gdf["paths"].values)
+            if idx == 0:
+                # Initialize GeoDataFrame with the first image's information
+                gdf = gpd.GeoDataFrame(
+                    {
+                        "paths": os.path.join(INPUT_FOLDER, file), 
+                        "geometry":[geom]
+                    },
+                    crs=2056)
+                continue
 
-
-    mosaic_params = {
-        "-harmo.method ": "none", # "band",
-        "-nodata ": "0",
-        "-ram ": "8192",
-        "progress": "1"
-        # "-comp.feather ": "large",
-        # "-comp.feather.slim.length ": "50"
-    }
-
-    # one "region" is one set of contiguous tiffs
-    for idx, region in enumerate(pathlist):
-
-        assert isinstance(region, list)
-        outputbase = os.path.join(OUTPUT_FOLDER, f"region{idx}")
-        # skip existing files
-        if os.path.exists(f"{outputbase}.tif"):
-            continue       
+            # Concatenate features for the subsequent images
+            gdf = pd.concat((
+                gdf,
+                gpd.GeoDataFrame(
+                    {
+                        # "id": idx,
+                        "paths": os.path.join(INPUT_FOLDER, file),
+                        "geometry" :[geom]
+                    },
+                    crs=2056)
+            ))
         
-        logger.info(f"Processing region {idx}")
+        # dissolve contiguous features and aggregate the paths into a list
+        gdf = (gdf
+            .assign(geometry=gdf.geometry.buffer(0.0001))
+            .dissolve()
+            .explode(index_parts=False)
+            .drop(["paths"], axis=1)
+            .reset_index(drop=True)
+            .sjoin(gdf)
+            .reset_index()
+            .dissolve(by="index", aggfunc=list)
+            .drop(["index_right"], axis=1)
+        )
+        # pathlist: list of lists
+        pathlist = list(gdf["paths"].values)
 
-        mosaic_params["-il "] = " ".join(region) + " "
-        mosaic_params["-out "] = f"{outputbase}_first.tif {DTYPE}"
 
-        # Construct OTB mosaic command
-        no_warnings = f"export CPL_LOG={OTB_LOG}" # "set" -> Windows, "export" -> Mac
-        mosaic_fn = os.path.join(OTB_INSTALLATION, "bin/otbcli_Mosaic")
-        param_str = f"{' '.join([str(key)+str(value) for key, value in mosaic_params.items()])}"
-        
-        # print("before OTB")
-        # Execute OTB mosaic command
-        if DEBUG:
-            os.system(f"{no_warnings}; {mosaic_fn} {param_str}")
-        else:
-            os.system(f"{no_warnings}; {mosaic_fn} {param_str} >> tmp/output.txt 2>&1") 
+        mosaic_params = {
+            "-harmo.method ": "none", # "band",
+            "-nodata ": "0",
+            "-ram ": "16384",
+            "progress": "1"
+            # "-comp.feather ": "large",
+            # "-comp.feather.slim.length ": "50"
+        }
 
-        # print("before translate")
-        gdal_translate = os.path.join(OTB_INSTALLATION, "bin/gdal_translate")
-        crs_params = f"-a_srs {CRS}"
+        # one "region" is one set of contiguous tiffs
+        for idx, region in enumerate(pathlist):
 
-        # Use GDAL translate to add the crs to the metadata of the mosaic
-        # and remove intermediate file
-        if DEBUG:
-            os.system(f"{gdal_translate}  -co COMPRESS=DEFLATE {crs_params} {outputbase+'_first.tif'} {outputbase+'.tif'}")
-        else:
-            os.system(f"{gdal_translate}  -co COMPRESS=DEFLATE {crs_params} {outputbase+'_first.tif'} {outputbase+'.tif'} >> tmp/output.txt 2>&1") 
-        os.remove(outputbase+'_first.tif')
+            assert isinstance(region, list)
+            outputbase = os.path.join(OUTPUT_FOLDER, f"region{kth}_{idx}.tif")
+            # skip existing files
+            if os.path.exists(f"{outputbase}.tif"):
+                continue       
+            
+            logger.info(f"Processing region {kth}_{idx}")
+
+            # NEW DEV
+            src_files_to_mosaic = []
+            for fp in pathlist[idx] :
+                src = rasterio.open(fp)
+                src_files_to_mosaic.append(src)
+            
+            mosaic, out_trans = merge(src_files_to_mosaic)
+
+            out_meta = src.meta.copy()
+            out_meta.update({"driver": "GTiff",
+                                "height": mosaic.shape[1],
+                                "width": mosaic.shape[2],
+                                "transform": out_trans
+                                }
+                                )
+
+            with rasterio.open(outputbase, "w", **out_meta) as dest:
+                dest.write(mosaic)
+            # END NEW DEV  
+
+            # mosaic_params["-il "] = " ".join(region) + " "
+            # mosaic_params["-out "] = f"{outputbase}_first.tif {DTYPE}"
+
+            # # Construct OTB mosaic command
+            # no_warnings = f"export CPL_LOG={OTB_LOG}" # "set" -> Windows, "export" -> Mac
+            # mosaic_fn = os.path.join(OTB_INSTALLATION, "bin/otbcli_Mosaic")
+            # param_str = f"{' '.join([str(key)+str(value) for key, value in mosaic_params.items()])}"
+            
+            # print("before OTB")
+            # Execute OTB mosaic command
+            # if True:
+            #     os.system(f"{no_warnings}; {mosaic_fn} {param_str}")
+            # else:
+            #     os.system(f"{no_warnings}; {mosaic_fn} {param_str} >> tmp/output.txt 2>&1") 
+
+            # print("before translate")
+            # gdal_translate = os.path.join(OTB_INSTALLATION, "bin/gdal_translate")
+            # crs_params = f"-a_srs {CRS}"
+
+            # # Use GDAL translate to add the crs to the metadata of the mosaic
+            # # and remove intermediate file
+            # if DEBUG:
+            #     os.system(f"{gdal_translate}  -co COMPRESS=DEFLATE {crs_params} {outputbase+'_first.tif'} {outputbase+'.tif'}")
+            # else:
+            #     os.system(f"{gdal_translate}  -co COMPRESS=DEFLATE {crs_params} {outputbase+'_first.tif'} {outputbase+'.tif'} >> tmp/output.txt 2>&1") 
+            # os.remove(outputbase+'_first.tif')
 
 
 if __name__ == "__main__":

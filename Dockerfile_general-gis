@@ -1,4 +1,5 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-small-latest
+# FROM --platform=linux/amd64 ghcr.io/osgeo/gdal:ubuntu-small-latest
+FROM ghcr.io/osgeo/gdal:ubuntu-small-3.6.3
 
 RUN chmod 777 /tmp
 RUN apt-get update
@@ -9,6 +10,7 @@ RUN apt-get install python3-pip -y
 COPY requirements_evaluation.txt .
 RUN pip install -r requirements_evaluation.txt
 
+# not included in requirements.txt after compiling it with pip-compile (?)
 RUN apt-get install -y libgl1-mesa-glx
 RUN apt-get install -y wget
 RUN apt-get install -y file
@@ -16,14 +18,21 @@ RUN wget https://www.orfeo-toolbox.org/packages/archives/OTB/OTB-8.1.1-Linux64.r
 RUN chmod +x OTB-8.1.1-Linux64.run
 RUN ./OTB-8.1.1-Linux64.run
 RUN apt-get update
+# RUN : \
+#     DEBIAN_FRONTEND=noninteractive apt-get install -y \
+#     --no-install-recommends \
+#     texlive-full \
+#     texlive-fonts-extra \
+#     && apt-get clean \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && :
 
 RUN mkdir proj-soils
 WORKDIR /proj-soils
 
 CMD jupyter lab --allow-root --ip 0.0.0.0 --port 8888 --no-browser --notebook-dir .
 
-# For debuggin modus
+# # Debug modus
 # RUN pip install debugpy
-# CMD ["python","-m","debugpy","--listen","0.0.0.0:5678","--wait-for-client","scripts/utilities/rgbi2rgb.py","--config_file","config/train/config-train_scratch-10cm.yaml"]
-
-# CMD /bin/bash
+# CMD ["python3","-m","debugpy","--listen","0.0.0.0:5678","--wait-for-client","scripts/utilities/tile-generator.py","--config_file","config/config-pp.yaml"] 
+# # docker compose run -p 5678:5678 general-gis

@@ -15,7 +15,7 @@ import numpy as np
 import rasterio
 
 import sys
-sys.path.append("/ViT-Adapter/segmentation")
+
 import mmcv_custom   # noqa: F401,F403
 import mmseg_custom   # noqa: F401,F403
 from mmseg.apis import inference_segmentor, init_segmentor, show_result_pyplot
@@ -26,6 +26,11 @@ import cv2
 import os.path as osp
 import torch
 import time
+from tqdm import tqdm
+
+import scripts.utilities.constants as cst
+
+
 
 def infere_heigvd(MODEL_CONFIG, CHECKPOINT, SOURCE_FOLDER, TARGET_FOLDER, DEVICE, STRIDE, SIDE_LENGTH, PALETTE, logger):
     """
@@ -78,9 +83,11 @@ def infere_heigvd(MODEL_CONFIG, CHECKPOINT, SOURCE_FOLDER, TARGET_FOLDER, DEVICE
         logger.info(f"Current configuration: {source_folder = }, {target_folder = }, {stride = }, {side_length = }")
 
         # Create the target folder if it doesn't already exist
-        mmcv.mkdir_or_exist(target_folder)
-
-        print(f'{side_length = }')
+        target_folder_pred = os.path.join(target_folder, 'pred')
+        mmcv.mkdir_or_exist(target_folder_pred)
+        if cst.LOGIT:
+            target_folder_score_diff = os.path.join(target_folder, 'score_diff')
+            mmcv.mkdir_or_exist(target_folder_score_diff)
 
         # Overwrite the model configuration to use the specified stride and input resolution
         config_mmcv["model"]["test_cfg"]["stride"] = (stride, stride)
@@ -93,15 +100,15 @@ def infere_heigvd(MODEL_CONFIG, CHECKPOINT, SOURCE_FOLDER, TARGET_FOLDER, DEVICE
         start = time.time()
 
         # Process each image in the source folder
-        for i, image_name in enumerate(list_image):
+        for i, image_name in tqdm(enumerate(list_image), total=len(list_image), desc='Processing tiles'):
 
 
             # Skip non-TIFF files
             if not image_name.endswith(("tif", "tiff")):
                 continue
 
-            file_out_path = os.path.join(target_folder, image_name)
-            if os.path.exists(file_out_path):
+            file_out_path = os.path.join(target_folder_pred, image_name)
+            if os.path.exists(file_out_path) and not cst.OVERWRITE:
                 logger.info(f"Already processed file {image_name}, continuing with next file")
                 continue
 
@@ -109,22 +116,29 @@ def infere_heigvd(MODEL_CONFIG, CHECKPOINT, SOURCE_FOLDER, TARGET_FOLDER, DEVICE
 
             # Read the image and convert it to RGB
             img = cv2.imread(file_path_img, cv2.IMREAD_IGNORE_ORIENTATION | cv2.IMREAD_COLOR)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             # Open the image using rasterio to get the profile
             with rasterio.open(file_path_img, "r") as src:
                 profile = src.profile
-                profile.update(count=1, compress='lzw')
                 if "photometric" in profile:
                     del profile["photometric"]
 
-            height, width, channels = img.shape
-            logger.info(f"Traitement de: {file_path_img} : shape h, w, c : {height}, {width}, {channels}")
+                profile.update(count=1, compress='lzw', dtype='uint8') 
+
+                if cst.LOGIT:
+                    profile_logit = profile.copy()
+                    profile_logit.update(dtype='float32')
+                    file_out_path_logit = os.path.join(target_folder_score_diff, image_name)
+
+            height, width, _ = img.shape
 
             # Perform inference on the image
-            result = inference_segmentor(model, img)
-
-            # release memory
+            if cst.LOGIT:
+                result, logit = inference_segmentor(model, img)
+            else:
+                result = inference_segmentor(model, img)
+           
             del img
 
             # release cuda memory
@@ -133,9 +147,11 @@ def infere_heigvd(MODEL_CONFIG, CHECKPOINT, SOURCE_FOLDER, TARGET_FOLDER, DEVICE
             # Save the segmentation result as a new image
             with rasterio.open(file_out_path, 'w', **profile) as dst:
                 dst.write(np.asarray(result, np.uint8).reshape((height, width)), 1)
-
-            logger.info(f"Processed {i+1} of {len_tot} images, {round(time.time()-start)} seconds elapsed")
-            logger.info(f"Result is saved at {file_out_path}")
+            if cst.LOGIT:
+                with rasterio.open(file_out_path_logit, 'w', **profile_logit) as dst:
+                   dst.write(logit[0])           
+    del model, checkpoint
+    
 
 if __name__ == "__main__":
     # Argument and parameter specification
@@ -143,7 +159,7 @@ if __name__ == "__main__":
         description="The script rasterizes a given polygon")
     parser.add_argument('-cfg', '--config_file', type=str, 
         help='Framework configuration file', 
-        default="/proj-soils/config/config-infere_heig-vd.yaml")
+        default="/proj-soils/config/config-pp.yaml")
     args = parser.parse_args()  
 
     # load input parameters

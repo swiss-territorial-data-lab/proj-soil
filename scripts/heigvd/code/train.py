@@ -6,6 +6,8 @@ import os.path as osp
 import time
 import warnings
 
+import sys
+sys.path.append("/ViT-Adapter/segmentation")
 import mmcv
 import mmcv_custom   # noqa: F401,F403
 import mmseg_custom   # noqa: F401,F403

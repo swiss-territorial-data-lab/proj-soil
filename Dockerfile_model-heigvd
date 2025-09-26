@@ -1,7 +1,7 @@
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04 as base
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04 AS base
 
 # To deactivate interaction
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 RUN chmod 777 /tmp
 RUN apt update && apt install -y tcl
 
@@ -22,7 +22,7 @@ RUN pip install ninja==1.11.1.1 poetry
 RUN pip install mmcv-full==1.4.2 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.9/index.html
 RUN pip install timm==0.4.12 mmdet==2.22.0 mmsegmentation==0.20.2
 
-#These commands install the cv2 dependencies that are normally present on the local machine, but might be missing in Docker container causing issue
+# These commands install the cv2 dependencies that are normally present on the local machine, but might be missing in Docker container causing issue
 RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 RUN pip install scipy==1.10.1
 
@@ -32,11 +32,28 @@ RUN pip install loguru
 RUN pip install yapf==0.40.1
 RUN pip install tensorboard
 
-WORKDIR "/ViT-Adapter/segmentation"
+WORKDIR "ViT-Adapter/segmentation"
 RUN cp -r ../detection/ops .
 RUN rm -r ../detection
 
+ENV CUDA_HOME=/usr/local/cuda
+RUN cd /ViT-Adapter/segmentation/ops && python3 setup.py build install
+
+COPY /scripts/heigvd/code/flair_one.py /ViT-Adapter/segmentation/mmseg_custom/datasets/flair_one.py
 COPY /scripts/heigvd/code/__init__.py /ViT-Adapter/segmentation/mmseg_custom/datasets/__init__.py
+COPY /scripts/heigvd/model/encoder_decoder_mask2former.py /ViT-Adapter/segmentation/mmseg_custom/models/segmentors/encoder_decoder_mask2former.py
+COPY /scripts/heigvd/code/proj_soils.py /ViT-Adapter/segmentation/mmseg_custom/datasets/proj_soils.py
+COPY /scripts/heigvd/code/infere_heigvd.py /ViT-Adapter/segmentation/infere_heigvd.py
+
+# Extend this countainer to some tasks run in general-gis container
+RUN apt update && apt-get install -y r-base libgdal-dev libproj-dev libgeos++-dev libudunits2-dev
+COPY requirements_extension.txt .
+RUN pip install -r requirements_extension.txt
+
+WORKDIR /app
+
+COPY scripts/utilities/ ./scripts/utilities/
+
+ENV PYTHONPATH=/ViT-Adapter/segmentation:/app
 
 CMD /bin/bash
-

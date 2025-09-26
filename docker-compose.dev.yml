@@ -1,0 +1,7 @@
+services:
+  model-heigvd:
+    volumes:
+      - ./scripts/heigvd/model/encoder_decoder_mask2former.py:/ViT-Adapter/segmentation/mmseg_custom/models/segmentors/encoder_decoder_mask2former.py
+      - ./scripts/heigvd/code/proj_soils.py:/ViT-Adapter/segmentation/mmseg_custom/datasets/proj_soils.py
+      - .:/app
+

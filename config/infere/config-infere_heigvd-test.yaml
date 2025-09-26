@@ -1,0 +1,10 @@
+infere_heigvd.py:
+  model_config: /proj-soils/data/models/mix16/mask2former_beit_adapter_large_512.py
+  checkpoint: /proj-soils/data/models/mix16/best_mIoU_iter_428628.pth
+  source_folder: /proj-soils/data/data_train/dataset/FR+VD/test/ipt/
+  target_folder: /proj-soils/data/data_train/dataset/FR+VD/test/opt/
+  stride: [512]
+  side_length: [[512, 512]]
+  device: "cuda:0"
+  palette: None
+  log_file: /proj-soils/logs/infere_heigvd.log

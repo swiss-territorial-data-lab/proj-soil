@@ -3,27 +3,27 @@
 #####################################################################
 
 rasterize_gt.py:
-  polygon_folder: /proj-soil/data/GT/20240216/2-cleaned
-  out_tiff_folder: /proj-soil/data/GT/20240216/3-rasterized-12cl/10cm
+  polygon_folder: /proj-soils/data/GT/20240216/2-cleaned
+  out_tiff_folder: /proj-soils/data/GT/20240216/3-rasterized-12cl/10cm
   field: cl12_id
   mask_path: 
   class_mapping: 
-  log_file: /proj-soil/logs/rasterize_gt.log
+  log_file: /proj-soils/logs/rasterize_gt.log
 
 cut_tiff_to_grid.py:
-  tiff_folder: /proj-soil/data/GT/20240216/3-rasterized-12cl/10cm
-  out_folder: /proj-soil/data/GT/20240216/4-cut-to-grid-12cl/10cm
-  grid_path: /proj-soil/data/grids/recursive_grids_max204-8m_51-2m.gpkg
+  tiff_folder: /proj-soils/data/GT/20240216/3-rasterized-12cl/10cm
+  out_folder: /proj-soils/data/GT/20240216/4-cut-to-grid-12cl/10cm
+  grid_path: /proj-soils/data/grids/recursive_grids_max204-8m_51-2m.gpkg
   grid_query: "depth == 0"
   cell_length: 512
   mask_path: 
   id_column: str_ids
-  log_file: /proj-soil/logs/cut_tiff_to_grid.log
+  log_file: /proj-soils/logs/cut_tiff_to_grid.log
 
 random_split.py:
-  source_ipt_folder: /proj-soil/data/scratch/3-cut-to-grid/10cm/512px
-  source_tgt_folder: /proj-soil/data/GT/20240216/4-cut-to-grid-12cl/10cm/512px
-  target_root: /proj-soil/data/datasets.nosync/dataset_12cl_seed6-adjusted_multiscale
+  source_ipt_folder: /proj-soils/data/scratch/3-cut-to-grid/10cm/512px
+  source_tgt_folder: /proj-soils/data/GT/20240216/4-cut-to-grid-12cl/10cm/512px
+  target_root: /proj-soils/data/datasets.nosync/dataset_12cl_seed6-adjusted_multiscale
   seed: 
-  split_file: /proj-soil/data/datasets.nosync/seed6_adjusted_split.yaml
-  log_file: /proj-soil/logs/random_split.log
+  split_file: /proj-soils/data/datasets.nosync/seed6_adjusted_split.yaml
+  log_file: /proj-soils/logs/random_split.log
