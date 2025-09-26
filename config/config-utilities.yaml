@@ -1,43 +1,137 @@
-#####################################################################
-###########     configuration file to ???     ############ 
-#####################################################################
-# What do the scripts do
-
-
-# $-Process and vectorize raster data using a series of GRASS GIS operations.
-vectorize_results.py: 
-  crs: "EPSG:2056"                 # Projection of the input file
-  input_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/OFS/2nd/1-reclassified/
-  output_folder:  /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/OFS/2nd/99-vectorized/
-  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/vectorize_results.log
-  # input_folder: /proj-soils/data/heig-vd/3-cut_to_grid/IGN_firstdelivery_extent/1024/heig-vd/
-  # output_folder:  /proj-soils/data/heig-vd/
-  # log_file: /proj-soils/proj-soils/logs/vectorize_results.log
-
-# for scratch images
-cut_tiff_to_grid.py:
-  tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics/band-harmo_large-feather/clipped_to_aois
-  out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/cut_to_grid-1024px
-  grid_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20231004/grids_104-2m_all_v2.gpkg
-  cell_length: 1024
-  mask_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20231004/0-cleaned
-  id_column: id
-  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/cut_tiff_to_grid.log
-
-compress_tiffs.py:
-  source_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/clipped_to_aois
-  target_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/clipped_to_aois_compressed
-  compression_method: "lzw"
-  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/compress_tiffs.log
+build_vrt.py:
+  source_folder: /proj-soils/data/data_inf/2020/swi
+  target_folder:  /proj-soils/data/data_inf/2020/swi
+  vrt_name: swi.vrt
+  bbox_gpkg: swi_bbox.gpkg
+  log_file: /proj-soils/logs/build_vrt.log
 
 create_recursive_grid.py:
-  source_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/GT/20240216/0-0-snapped
-  target_path: /Users/nicibe/Documents/AutoDelete/recursive_grids_max204-8m.gpkg
-  depth: 2
-  max_gridsize: 204.8
-  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/create_recursive_grid.log
+  source_folder: /proj-soils/data/data_train/gt/1-cleaned
+  target_path: /proj-soils/data/data_train/recursive_grids_max51-2m.gpkg
+  depth: 0
+  max_gridsize: 51.2 
+  log_file: /prj-soils/logs/create_recursive_grid.log
 
-rgbi2rgb.py:
-  source_folder: /Users/nicibe/Documents/AutoDelete/tif_test
-  target_folder: /Users/nicibe/Documents/AutoDelete/tif_test/output
-  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/rgbi2rgb.log
+cut_border.py:
+  source_folder: /proj-soils/data/data_inf/2020/rgb_mix_opt/
+  target_folder: /proj-soils/data/data_inf/2020/rgb_mix_opt_cut
+  border_width: 25 #[px]
+  log_file: /proj-soils/logs/cut_border.log
+
+cut_tiff_to_grid.py:
+  tiff_folder: /proj-soils/data/data_train/gt/2-rasterized
+  out_folder: /proj-soils/data/data_train/gt/3-cut
+  grid_path: /proj-soils/data/data_train/recursive_grids_max51-2m.gpkg
+  grid_query: "depth == 0"
+  cell_length: 512
+  mask_path: 
+  im_file_ext: .tif
+  id_column: str_ids
+  log_file: /proj-soils/logs/cut_tiff_to_grid.log
+
+metrics_from_cm_per_tile.py:
+  dir_tiles_label: /proj-soils/data/data_train/dataset/FR+VD/test/tgt/
+  dir_tiles_pred: /proj-soils/data/data_train/dataset/FR+VD/test/opt/pred/
+  file_name_prefix: model #default are : /<len(#dict_labels><area_type>metrics.csv, /cm.csv, /cm_perc.csv
+  area_type_file: /proj-soils/data/proj-soils/train2/split_area_type.yaml
+  area_type:  # land or urban or ''
+  # dict_classes: {0: 'no_data', 1: 'non-soil', 2: 'soil', 3: 'water', 4: 'uncertain'}
+  dict_classes: {0: 'no_data', 1: 'building', 2: 'non-concrete anthropogenic surface', 3: 'surface in concrete', 4: 'bare rock', 5: 'natural water', 6: 'reed', 7: 'snow', 
+                8: 'soil with vegetation', 9: 'vineyard and orchard', 10: 'agricultural land', 11: 'tarp', 12: 'temporary greenhouse', 
+                13: 'permanent greenhouse', 14: 'green roof', 15: 'basin', 16: 'synthetic lawn', 17: 'eave'}
+  log_file: /proj-soils/logs/metrics_from_cm_per_tile.log
+
+monitoring_count.py: 
+  input_folder: /proj-soils/data/data_inf/2020_2023_mosaic
+  mask: #/proj-soils/data/data_moni/bauzonen.gpkg
+  dict_tag: {
+            0: 'no class change',
+            10: 'no superclass change',
+            20: 'soil to non-soil',
+            21: 'low confidence soil to non-soil',
+            22: 'construction, soil to building',
+            23: 'tilt, soil to building',
+            24: 'other transitions soil to building',
+            25: 'vegetation hover/tilt to non-soil',
+            26: 'vegetation to water artefacts',
+            30: 'non-soil to soil',
+            31: 'low confidence non-soil to soil',
+            32: 'deconstruction, building to soil',
+            33: 'tilt building, building to soil',
+            34: 'other transitions building to soil',
+            35: 'non-soil to vegetation hover/tilt', 
+            36: 'water to vegetation artefacts',
+            40: 'border',
+            50: 'snow cover',
+            60: 'noise'
+            }
+  log_file: /proj-soils/logs/monitoring_count.log
+
+mosaic_grid.py: 
+  input_folder: /proj-soils/data/data_inf/2020_2023
+  output_folder: /proj-soils/data/data_inf/2020_2023_mosaic
+  bbox_gpkg: #/proj-soils/data/data_inf/2020/swi/swi_bbox.gpkg
+  crs: "EPSG:2056"
+  log_file: /proj-soils/logs/mosaic_grid.log
+
+post_processing_embedding.py:
+  input_folder_1: /proj-soils/data/data_inf/2020/rgb_mix_opt_cut_corr/mc
+  input_folder_2: /proj-soils/data/data_inf/2023/rgb_mix_opt_cut_corr/mc
+  conf_folder_1: /proj-soils/data/data_inf/2020/rgb_mix_opt_cut/score_diff
+  conf_folder_2: /proj-soils/data/data_inf/2023/rgb_mix_opt_cut/score_diff
+  corrected_folder_1: 
+  corrected_folder_2: 
+  monitored_folder: /proj-soils/data/data_inf/2020_2023
+  correction_type:  
+                  # 'mc': on the prediction classes, 
+                  # 'soil': agreggate prediction into the soil superclasses before correcting
+                  # 'combined': 1. 'mc', 2. 'soil' on 'mc' output. 
+                  # NB: corresponding subfolder are automatically created in the 'corrrected_folder_*'
+  reclassification_rules: {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 3, 6: 1, 7: 4, 8: 2, 
+                          9: 2, 10: 2, 11: 2, 12: 2, 13: 1, 14: 1, 15: 3, 16: 1, 17: 1} # reclassification from 'mc' classes 
+                                                                                        # to 'soil' superclasses
+  log_file: /proj-soils/logs/post_processing_embedding.log
+
+rasterize_gt.py:
+  polygon_folder: /proj-soils/data/data_train/gt/1-cleaned
+  out_tiff_folder: /proj-soils/data/data_train/gt/2-rasterized
+  field: CLASSE_SEN_ID
+  mask_path: 
+  class_mapping: 
+  log_file: /proj-soils/logs/rasterize_gt.log
+
+reclassify.py:
+  source_folder: /proj-soils/data/data_train/dataset/FR+VD/test/tgt/
+  target_folder: /proj-soils/data/data_train/dataset/FR+VD/test/tgt_quat/
+  log_file: /proj-soils/logs/reclassify.log
+  mapping: {
+    0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 3, 6: 1, 7: 4, 8: 2, 9: 2, 10: 2,
+    11: 2, 12: 2, 13: 1, 14: 1, 15: 3, 16: 1, 17: 1
+  } #classes to superclasses
+
+rescale_tif.py:
+  tiff_folder: /proj-soils/data/data_train/im/0-ori-res
+  out_folder: /proj-soils/data/data_train/im/1-10cm
+  target_res: 0.1
+  log_file: /proj-soils/logs/rescale.log
+
+uncertainty_per_tile.py:
+  dir_tiles_label: /proj-soils/data/data_train/dataset/FR+VD/test/tgt/
+  dir_tiles_pred: /proj-soils/data/data_train/dataset/FR+VD/test/opt/
+  file_name_prefix: uaa_diff #default are : /<len(dict_labels><area_type>metrics.csv, /cm.csv, /cm_perc.csv
+  to_reclassify: True
+  reclassification_rules: {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 3, 6: 1, 7: 4, 8: 2, 
+                          9: 2, 10: 2, 11: 2, 12: 2, 13: 1, 14: 1, 15: 3, 16: 1, 17: 1}
+  log_file: /proj-soils/logs/uncertainty_per_tile.log
+
+wmts_geoquery.py: 
+  target_folder: /proj-soils/data/data_inf/2020/swi_wmts/
+  dir_tmp: /proj-soils/data/data_inf/2020
+  url_wmts: 'https://wmts.geo.admin.ch/EPSG/2056/1.0.0/WMTSCapabilities.xml'
+  epsg_proj: 2056
+  layer: 'ch.swisstopo.swissimage-product'
+  tiles: '/proj-soils/data/data_inf/wmts_aoi.gpkg'
+  width: 10000
+  time: '2020'
+  tmp: /run/shm 
+  log_file: /proj-soils/logs/wmts-geoquery.log

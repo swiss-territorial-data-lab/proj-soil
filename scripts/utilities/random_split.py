@@ -9,11 +9,16 @@ import time
 
 from loguru import logger
 
+
 def random_split(SOURCE_IPT_FOLDER, SOURCE_TGT_FOLDER, TARGET_ROOT, SEED, SPLIT_FILE=None) -> None:
     """
     Randomly splits the raster files in the source folders into train, validation, and test sets.
     Copies the files to the corresponding folders in the target root directory.
-    Generates a split.yaml file that contains the mapping of file IDs to their respective splits.
+    Two modes:
+        (1) if a YAML file of the split to apply is given (SPLIT_FILE), it is directly used to split
+        the tiles in the correct dataset
+        (2) if it is not the case, SEED is used to create a random split and a split.yaml file 
+        that contains the mapping of file IDs to their respective splits is generated
     
     Parameters:
         SOURCE_IPT_FOLDER (str): Path to the source folder containing input raster files.
@@ -43,21 +48,19 @@ def random_split(SOURCE_IPT_FOLDER, SOURCE_TGT_FOLDER, TARGET_ROOT, SEED, SPLIT_
     for file in ipt_files:
         if not file.endswith(".tif"):
             continue
-        ipt_id = file.split("_")[0].split("-")[0]
+        ipt_id = file.split("-")[2].rstrip(".tif")
         ipt_ids.append(ipt_id)
 
     tgt_files = list(os.listdir(SOURCE_TGT_FOLDER))
     for file in tgt_files:
         if not file.endswith(".tif"):
             continue
-        tgt_id = file.split("_")[0].split("-")[0]
+        tgt_id = file.split("-")[2].rstrip(".tif")
         tgt_ids.append(tgt_id)
 
     ipt_ids = set(ipt_ids)
     tgt_ids = set(tgt_ids)
-
-    assert ipt_ids == tgt_ids, f"{sorted(list((ipt_ids - tgt_ids))) = },\n{sorted(list((tgt_ids - ipt_ids))) = }"
-
+    ipt_ids = ipt_ids.intersection(tgt_ids)
     ids = list(ipt_ids)
     ids.sort()
 
@@ -66,13 +69,13 @@ def random_split(SOURCE_IPT_FOLDER, SOURCE_TGT_FOLDER, TARGET_ROOT, SEED, SPLIT_
         np.random.shuffle(ids)
 
         n = len(ids)
-        n_train = int(n * 0.8)
-        n_val = n - n_train
-
+        n_train = int(n * 0.7)
+        n_val = n_train + int(np.floor(n - n_train)/2)
         train_ids = ids[:n_train]
-        val_ids = ids[n_train:]
+        val_ids = ids[n_train:n_val]
+        test_ids = ids[n_val:]
 
-        split_dic = {"train": sorted(train_ids), "val": sorted(val_ids)}
+        split_dic = {"train": sorted(train_ids), "val": sorted(val_ids), "test":sorted(test_ids)}
         with open(f'{TARGET_ROOT}/split.yaml', 'w') as file:
             yaml.dump(split_dic, file)
         logger.info(f"Generated new random split with seed {SEED} and saved to {TARGET_ROOT}/split.yaml")
@@ -85,21 +88,18 @@ def random_split(SOURCE_IPT_FOLDER, SOURCE_TGT_FOLDER, TARGET_ROOT, SEED, SPLIT_
 
         train_ids = split_dic["train"]
         val_ids = split_dic["val"]
+        test_ids = split_dic["test"]
         
-        # assert set(train_ids).union(set(val_ids)) == ipt_ids, f"{set(train_ids).union(set(val_ids)) = } != {ipt_ids = }"
-
         logger.info(f"Loaded split from {SPLIT_FILE}")
 
-    logger.info(f"{len(train_ids) = }")
-    logger.info(f"{len(val_ids) = }") 
 
-
-    for split in ["train", "val"]:
+    for split in ["train", "val","test"]:
         Path(f"{TARGET_ROOT}/{split}/tgt").mkdir(parents=True, exist_ok=True)
         Path(f"{TARGET_ROOT}/{split}/ipt").mkdir(parents=True, exist_ok=True)
 
     traincount = 0
     valcount = 0
+    testcount = 0
     for file in sorted(tgt_files):
         if not file.endswith(".tif"):
             continue
@@ -108,7 +108,7 @@ def random_split(SOURCE_IPT_FOLDER, SOURCE_TGT_FOLDER, TARGET_ROOT, SEED, SPLIT_
             continue
 
         print(f'{file = }', end="\r")
-        id = file.split("_")[0].split("-")[0]
+        id = int(file.split("-")[2].rstrip(".tif"))
         if id in train_ids:
             shutil.copyfile(f"{SOURCE_IPT_FOLDER}/{file}", f"{TARGET_ROOT}/train/ipt/{file}")
             shutil.copyfile(f"{SOURCE_TGT_FOLDER}/{file}", f"{TARGET_ROOT}/train/tgt/{file}")
@@ -117,9 +117,13 @@ def random_split(SOURCE_IPT_FOLDER, SOURCE_TGT_FOLDER, TARGET_ROOT, SEED, SPLIT_
             shutil.copyfile(f"{SOURCE_IPT_FOLDER}/{file}", f"{TARGET_ROOT}/val/ipt/{file}")
             shutil.copyfile(f"{SOURCE_TGT_FOLDER}/{file}", f"{TARGET_ROOT}/val/tgt/{file}")
             valcount += 1
-        
+        elif id in test_ids:
+            shutil.copyfile(f"{SOURCE_IPT_FOLDER}/{file}", f"{TARGET_ROOT}/test/ipt/{file}")
+            shutil.copyfile(f"{SOURCE_TGT_FOLDER}/{file}", f"{TARGET_ROOT}/test/tgt/{file}")
+            testcount += 1
     logger.info(f"{traincount = }")
     logger.info(f"{valcount = }")
+    logger.info(f"{testcount = }")
     
 
 if __name__ == "__main__":
@@ -129,7 +133,7 @@ if __name__ == "__main__":
         description="The script rasterizes a given polygon")
     parser.add_argument('-cfg', '--config_file', type=str, 
         help='Framework configuration file', 
-        default="/Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/config/config-proj-vit-40cm.yaml"
+        default="/proj-soils/config/config-utilities.yaml"
         )
     args = parser.parse_args()
 
@@ -140,17 +144,12 @@ if __name__ == "__main__":
             Loader=yaml.FullLoader)[os.path.basename(__file__)]
 
 
-
     SOURCE_IPT_FOLDER = cfg["source_ipt_folder"]
     SOURCE_TGT_FOLDER = cfg["source_tgt_folder"]
     TARGET_ROOT = cfg["target_root"]
     SEED = cfg["seed"]
     SPLIT_FILE = cfg["split_file"]
     LOG_FILE = cfg["log_file"]
-    
-    if not os.path.exists(TARGET_ROOT):
-        os.makedirs(TARGET_ROOT)
-        print(f"The directory {TARGET_ROOT} was created.")
 
     # set up logger
     logger.remove()
@@ -163,6 +162,8 @@ if __name__ == "__main__":
     logger.info(f"{SEED = }")
     logger.info(f"{SPLIT_FILE = }")
     logger.info(f"{LOG_FILE = }")    
+
+    os.makedirs(TARGET_ROOT, exist_ok=True)
 
     logger.info("Started Programm")
     random_split(SOURCE_IPT_FOLDER, SOURCE_TGT_FOLDER, TARGET_ROOT, SEED, SPLIT_FILE)

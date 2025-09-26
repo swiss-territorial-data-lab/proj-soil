@@ -1,0 +1,11 @@
+infere_heigvd.py:
+  config: /proj-soils/scripts/heigvd/model/mask2former_beit_adapter_large_512_160k_proj-soils_12class_10cm.py
+  checkpoint: ../../proj-soils/data/data_packages/data_inference-and-training/model_weights/heig-vd_finetuned/10cm_best_mIoU_iter_71280.pth
+  source_folder: [/proj-soils/data/2-datasets/dataset_12cl_seed6-adjusted_10cm/val/ipt/test]
+  target_folder: [/proj-soils/data/2-datasets/dataset_12cl_seed6-adjusted_10cm/val/tgt/test3]
+  stride: [512]
+  side_length: [[2048, 2048]]
+  device: "cuda:0"
+  palette: None
+  log_file: ../../proj-soils/logs/infere_heigvd.log
+

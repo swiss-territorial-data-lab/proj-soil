@@ -62,7 +62,7 @@ def rasterize(POLYGON_FOLDER, FIELD, OUT_TIFF_FOLDER, CLASS_MAPPING, MASK_PATH=N
 
             meta = {
                 'driver': 'GTiff',
-                'dtype': 'int8',
+                'dtype': 'uint8',
                 'nodata': 0,
                 'width': width,
                 'height': height,
@@ -86,8 +86,7 @@ def rasterize(POLYGON_FOLDER, FIELD, OUT_TIFF_FOLDER, CLASS_MAPPING, MASK_PATH=N
                     out=np.zeros((height, width)),
                     transform=dst.transform)
 
-
-                dst.write_band(1, burned)
+                dst.write_band(1, burned.astype('uint8'))
                 
 
 if __name__ == "__main__":
@@ -112,11 +111,6 @@ if __name__ == "__main__":
     CLASS_MAPPING = cfg["class_mapping"]
     LOG_FILE = cfg["log_file"]
 
-
-    if not os.path.exists(OUT_TIFF_FOLDER):
-        os.makedirs(OUT_TIFF_FOLDER)
-        print(f"The directory {OUT_TIFF_FOLDER} was created.")
-
     # set up logger
     logger.remove()
     logger.add(sys.stdout, level="DEBUG")
@@ -128,6 +122,8 @@ if __name__ == "__main__":
     logger.info(f"{OUT_TIFF_FOLDER = }")
     logger.info(f"{CLASS_MAPPING = }")
     logger.info(f"{MASK_PATH = }")
+
+    os.makedirs(OUT_TIFF_FOLDER, exist_ok=True)
 
     logger.info("Started Programm")
     rasterize(POLYGON_FOLDER, FIELD, OUT_TIFF_FOLDER, CLASS_MAPPING, MASK_PATH)

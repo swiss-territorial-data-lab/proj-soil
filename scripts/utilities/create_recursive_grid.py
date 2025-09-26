@@ -52,11 +52,13 @@ def create_recursive_grid(SOURCE_FOLDER, TARGET_PATH, DEPTH, MAX_GRIDSIZE):
         None
     """
     bboxes = []
+    sub_aoi = []
     for file in os.listdir(SOURCE_FOLDER):
         if not file.endswith((".shp", ".gpkg")):
             continue
         gt = gpd.read_file(os.path.join(SOURCE_FOLDER, file))
         bboxes.append(list(gt.total_bounds))
+        sub_aoi.append(file)
 
     # Create the grid
     grid = []
@@ -64,6 +66,7 @@ def create_recursive_grid(SOURCE_FOLDER, TARGET_PATH, DEPTH, MAX_GRIDSIZE):
     str_ids = []
     depths = []
     gridsizes = []
+    sub_aoi_att = []
 
     unique_id = 0
     scale_ids = [0, 0, 0]
@@ -103,6 +106,7 @@ def create_recursive_grid(SOURCE_FOLDER, TARGET_PATH, DEPTH, MAX_GRIDSIZE):
                     unique_ids.append(unique_id)
                     depths.append(depth)
                     gridsizes.append(MAX_GRIDSIZE / 2**depth)
+                    sub_aoi_att.append(sub_aoi[i])
 
                     scale_ids[depth] += 1
                     unique_id += 1
@@ -115,6 +119,7 @@ def create_recursive_grid(SOURCE_FOLDER, TARGET_PATH, DEPTH, MAX_GRIDSIZE):
             "str_ids": str_ids,
             "gridsize": gridsizes,
             "depth": depths,
+            "sub_aoi": sub_aoi_att,
         },
         crs=2056,
     )
@@ -134,7 +139,7 @@ if __name__ == "__main__":
         "--config_file",
         type=str,
         help="Framework configuration file",
-        default="/Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/config/config-utilities.yaml",
+        default="/proj-soils/config/config-utilities.yaml",
     )
     args = parser.parse_args()
 

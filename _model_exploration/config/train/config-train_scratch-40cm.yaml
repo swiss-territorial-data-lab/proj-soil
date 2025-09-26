@@ -1,0 +1,15 @@
+rescale_tif.py:
+  tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/0-AOIs
+  out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/2-rescaled/40cm
+  target_res: 0.4
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/rescale.log
+
+cut_tiff_to_grid.py:
+  tiff_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/2-rescaled/40cm
+  out_folder: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/scratch/horizontal_scratch_mosaics-rgb/3-cut_to_grid/40cm/512px
+  grid_path: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/data/heig-vd_finetuned/recursive_grids_max204-8m.gpkg
+  grid_query: "depth == 2"
+  cell_length: 512
+  mask_path: 
+  id_column: str_ids
+  log_file: /Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/logs/cut_tiff_to_grid.log

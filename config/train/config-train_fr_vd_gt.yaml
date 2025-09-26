@@ -1,0 +1,62 @@
+rasterize_gt.py:
+  polygon_folder: /proj-soils/data/data_train/gt/1-cleaned
+  out_tiff_folder: /proj-soils/data/data_train/gt/2-rasterized
+  field: CLASSE_SEN_ID
+  mask_path: 
+  class_mapping: 
+  log_file: /proj-soils/logs/rasterize_gt.log
+
+reclassify.py:
+  source_folder:
+  target_folder:
+  mapping: {
+    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10,
+    11: 11, 12: 11, 13: 12, 14: 1, 15: 5, 16: 2, 17: 1
+  } # class aggregation
+  log_file: /proj-soils/logs/reclassify.log
+
+create_recursive_grid.py:
+  source_folder: /proj-soils/data/data_train/gt/1-cleaned
+  target_path: /proj-soils/data/data_train/recursive_grids_max51-2m.gpkg
+  depth: 0
+  max_gridsize: 51.2 
+  log_file: /prj-soils/logs/create_recursive_grid.log
+
+cut_tiff_to_grid.py:
+  tiff_folder: /proj-soils/data/data_train/gt/2-rasterized
+  out_folder: /proj-soils/data/data_train/gt/3-cut
+  grid_path: /proj-soils/data/data_train/recursive_grids_max51-2m.gpkg
+  grid_query: "depth == 0"
+  cell_length: 512
+  mask_path: 
+  im_file_ext: .tif
+  id_column: str_ids
+  log_file: /proj-soils/logs/cut_tiff_to_grid.log
+
+random_split_grid_by_region.py: 
+  seed: 42
+  grid_path: /proj-soils/data/data_train/recursive_grids_max51-2m.gpkg
+  grid_path_split: /proj-soils/data/data_train/recursive_grids_max51-2m_splits.gpkg
+  previous_split: /proj-soils/data/data_train/model_exploration_recursive_grids_max204-8m.gpkg
+  target_root: /proj-soils/data/data_train/
+  path_aoi_canton: /proj-soils/data/data_train/canton_perimeter.gpkg
+  aoi_filter: {' ': 'FR+VD', 'Vaud': 'FR', 'Fribourg': 'VD'}
+  log_file: /proj-soils/logs/random_split_grid_by_region.log
+
+random_split.py:
+  source_ipt_folder: /proj-soils/data/data_train/im/2-cut
+  source_tgt_folder: /proj-soils/data/data_train/gt/3-cut/
+  target_root: /proj-soils/data/data_train/dataset/FR+VD/
+  seed: 6
+  split_file: /proj-soils/data/data_train/split_FR+VD.yaml
+  log_file: /proj-soils/logs/random_split.log
+
+pixel_count_per_class.py:
+  dataset_dir: /proj-soils/data/data_train/dataset/FR+VD/
+  sub_dirs: ['train','val','test']
+  pixel_count_dict: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 
+                        10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0}
+  class_name: ['no_data','building','non-concrete anthropogenic surface','surface in concrete', 'bare rock','natural water','reed','snow', 
+                'soil with vegetation', 'agricultural land', 'vineyard and orchard', 'tarp', 'temporary greenhouse',
+                'permanent greenhouse', 'green roof', 'basin', 'synthetic lawn', 'eave','dataset']
+  log_file: /proj-soils/logs/pixel_count_per_class.log

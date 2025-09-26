@@ -14,6 +14,7 @@ import yaml
 import os
 import sys
 import argparse
+import time
 
 from loguru import logger
 
@@ -21,9 +22,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-
-
-def cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER, MASK_PATH=None, GRID_QUERY=None) -> None:
+def cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER, FILE_EXT='.tif', MASK_PATH=None, GRID_QUERY=None) -> None:
 
     """
     Cut tiff images into grid cells based on a shapefile grid.
@@ -65,7 +64,7 @@ def cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER,
 
     for file in os.listdir(TIFF_FOLDER):
 
-        if not file.endswith((".tif", ".tiff")):
+        if not file.endswith(FILE_EXT):
             continue
 
         with rasterio.open(os.path.join(TIFF_FOLDER, file)) as src:
@@ -89,17 +88,16 @@ def cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER,
 
             logger.info(f"{file = }")
             logger.info(f"{len(grid)} gridcells on tiff-extent")
+            grid.rename(columns={ID_COLUMN: "ID_COLUMN"}, inplace=True)
 
 
             if MASK_PATH is not None:
                 # add new boolean column whether a gridcell intersects with the mask
                 grid["intersects"] = grid["geometry"].intersects(MASK.dissolve()["geometry"].values[0])
 
-            for idx, gridcell in grid.iterrows():
+            for gridcell in grid.itertuples():
+                idx = gridcell[0]
                 vector=grid.loc[[idx]] 
-
-                if idx % 10 == 0:
-                    print(f'{idx} of {len(grid)}', end='\r')  # CM:does not inform on the progress idx> len(grid)   
 
                 if MASK_PATH is not None:
                     # skip if gridcell doesn't intersect with the mask
@@ -120,7 +118,6 @@ def cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER,
                 # skip too small images (border images, that don't fill an entire gridcell)
                 tolerance = 2
                 if not ((abs(out_image.shape[1] - CELL_LENGTH) <= tolerance) and (abs(out_image.shape[2] - CELL_LENGTH) <= tolerance)):
-                #CM: what about (((CELL_LENGTH-out_image.shape[1]) <= tolerance) and ((CELL_LENGTH - out_image.shape[2]) <= tolerance)):
                     print(f"Skipped too small image (out_image.shape = {out_image.shape})")
                     continue
 
@@ -194,13 +191,6 @@ def cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER,
 
                     out_image = a * 1
 
-                # assert out_image.all(), f"There are still zeros in the image. {(np.unique(np.array(out_image)))} zeros found."
-                if not out_image.all():
-                    print(np.unique(np.array(out_image.data), return_counts=True))
-                    print(out_image.data)
-                
-                assert out_image.all()
-
                 out_transform_list = list(out_transform)
                 out_transform_list[2] = vector.bounds.minx.values[0]
                 out_transform_list[5] = vector.bounds.maxy.values[0]
@@ -218,7 +208,7 @@ def cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER,
                 
                 out_path = os.path.join(
                     OUT_FOLDER,
-                    f"{str(gridcell[ID_COLUMN])}_{file.split('.')[0]}.tif"
+                    f"{str(gridcell.ID_COLUMN)}.tif"
                     )
 
                 if os.path.exists(out_path):
@@ -234,7 +224,7 @@ if __name__ == "__main__":
         description="The script...")
     parser.add_argument('-cfg', '--config_file', type=str, 
         help='Framework configuration file', 
-        default="/Users/nicibe/Desktop/Job/swisstopo_stdl/soil_fribourg/proj-soils/config/eval/config-eval_OFS_val-seed6-adj.yaml")
+        default="/proj-soils/config/config-utilities.yaml")
     args = parser.parse_args()
 
     # load input parameters
@@ -249,10 +239,7 @@ if __name__ == "__main__":
     OUT_FOLDER = cfg["out_folder"]
     LOG_FILE = cfg["log_file"]
     MASK_PATH = cfg["mask_path"]
-
-    if not os.path.exists(OUT_FOLDER):
-        os.makedirs(OUT_FOLDER)
-        print(f"The directory {OUT_FOLDER} was created.")
+    FILE_EXT = cfg["im_file_ext"] 
 
     # set up logger
     logger.remove()
@@ -267,8 +254,13 @@ if __name__ == "__main__":
     logger.info(f"{ID_COLUMN = }")
     logger.info(f"{LOG_FILE = }")
     logger.info(f"{MASK_PATH = }")
+    logger.info(f"{FILE_EXT = }")
+
+    os.makedirs(OUT_FOLDER, exist_ok=True)
+
+    tic =time.time()
 
 
     logger.info("Started Programm")
-    cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER, MASK_PATH, GRID_QUERY)
-    logger.info("Ended Program\n")
+    cut_tiff_to_grid(TIFF_FOLDER, GRID_PATH, CELL_LENGTH, ID_COLUMN, OUT_FOLDER, FILE_EXT, MASK_PATH, GRID_QUERY)
+    logger.info(f"Ended Program {time.time()-tic} s\n")

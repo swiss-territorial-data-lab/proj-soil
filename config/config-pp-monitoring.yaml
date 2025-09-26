@@ -1,0 +1,61 @@
+build_vrt.py:
+  source_folder: /proj-soils/data/data_inf/2020/swi
+  target_folder:  /proj-soils/data/data_inf/2020/swi
+  vrt_name: swi.vrt
+  bbox_gpkg: swi_bbox.gpkg
+  log_file: /proj-soils/logs/build_vrt.log
+
+prepare_entire_plans.py:
+  working_dir: /proj-soils/data/data_inf/2020/
+  create_grid: False
+  output_dir: 
+    vectors: /proj-soils/data/data_inf/2023/vec/
+  tile_dir: swi
+  tile_suffix: .vrt
+  log_file: /proj-soils/logs/prepare_entire_plans.log
+
+productive_pipeline.py:
+  working_dir: /proj-soils/data/data_inf/2020/
+
+infere_heigvd.py:
+  model_config: /proj-soils/data/models/mix16/mask2former_beit_adapter_large_512.py
+  checkpoint: /proj-soils/data/models/mix16/best_mIoU_iter_428628.pth
+  source_folder: swi/subtiles
+  target_folder: rgb_mix_opt
+  stride: [512]
+  side_length: [[512, 512]]
+  device: "cuda:0"
+  palette: None
+  log_file: /proj-soils/logs/infere_heigvd.log
+
+cut_border.py:
+  source_folder: rgb_mix_opt
+  target_folder: rgb_mix_opt_cut
+  border_width: 25 # [px]
+  log_file: /proj-soils/logs/cut_border.log
+
+post_processing_embedding.py:
+  input_folder_1: rgb_mix_opt_cut/pred
+  input_folder_2: /proj-soils/data/data_inf/2023/rgb_mix_opt_cut/pred
+  conf_folder_1: rgb_mix_opt_cut/score_diff
+  conf_folder_2: /proj-soils/data/data_inf/2023/rgb_mix_opt_cut/score_diff
+  corrected_folder_1: rgb_mix_opt_cut_corr
+  corrected_folder_2: /proj-soils/data/data_inf/2023/rgb_mix_opt_cut_corr
+  monitored_folder:  /proj-soils/data/data_inf/2020_2023
+  correction_type: 'combined' 
+                  # 'mc': on the prediction classes, 
+                  # 'soil': agreggate prediction into the superclasses before correcting
+                  # 'combined': 1. 'mc', 2. 'soil' on 'mc' output. 
+                  # NB: corresponding subfolder are automatically created in the 'corrrected_folder_*'
+  reclassification_rules: {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 3, 6: 1, 7: 4, 8: 2, 
+                          9: 2, 10: 2, 11: 2, 12: 2, 13: 1, 14: 1, 15: 3, 16: 1, 17: 1} # reclassification from 'mc' classes 
+                                                                                        # to 'soil' supeclasses
+  log_file: /proj-soils/logs/post_processing_embedding.log
+
+mosaic_grid.py: 
+  input_infer_folder: rgb_mix_opt_cut
+  input_corr_folder: rgb_mix_opt_cut_corr
+  output_folder: rgb_mix_mosaic  
+  bbox_gpkg: swi/swi_bbox.gpkg
+  crs: "EPSG:2056"
+  log_file: /proj-soils/logs/mosaic_grid.log

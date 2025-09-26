@@ -1,0 +1,10 @@
+infere_heigvd.py:
+  config: /proj-soils/scripts/heigvd/model/mask2former_beit_adapter_large_512_160k_proj-soils_12class_multiscale.py
+  checkpoint: /proj-soils/data/inference_heigvd/mixed_best_mIoU_iter_145320.pth
+  source_folder: [/proj-soils/data/mock_example/swissimage]
+  target_folder: [/proj-soils/data/mock_example/output]
+  stride: [512]
+  side_length: [[10000, 10000]]
+  device: "cuda:0"
+  palette: None
+  log_file: /proj-soils/logs/infere_heigvd.log
