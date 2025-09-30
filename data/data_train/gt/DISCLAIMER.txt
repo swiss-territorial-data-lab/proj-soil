@@ -1,0 +1,1 @@
+The ground truth is data produced as part of this project solely to meet a specific need. As it was digitized manually on aerial images without extensive field visits, it may contain errors and imperfections. 

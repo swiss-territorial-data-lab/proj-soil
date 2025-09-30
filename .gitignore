@@ -19,7 +19,6 @@ mmsegmentation
 
 csv/
 debugpy/
-data*/
 env/
 figures/
 geoquery/
@@ -27,7 +26,6 @@ logs/
 reporting/
 
 *.qgz
-*.gpkg
 .vscode
 .png
 
