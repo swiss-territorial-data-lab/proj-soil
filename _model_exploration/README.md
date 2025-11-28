@@ -39,7 +39,7 @@ Here is the ordered procedures performed during the project:
   * [2. Inference](#2-inference)
   * [3. Post-processing](#3-post-processing)
 
-Please find here the model weights: https://sftpgo.stdl.ch/web/client/pubshares/2HvZAv4VegLzxmXSPbmUeb/browse. The models correspond to the ones evaluated in Figure 19 of the [technical documentation](https://tech.stdl.ch/PROJ-SOILS/#61-evaluation).
+The weights of `HEIG-VD-original` model mentioned in the [technical documentation](https://tech.stdl.ch/PROJ-SOILS) can be found [here](../data/models/heigvd).
 
 ## Evaluation Pipeline
 

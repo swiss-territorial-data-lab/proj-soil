@@ -1,1 +1,1 @@
-https://sftpgo.stdl.ch/web/client/pubshares/2HvZAv4VegLzxmXSPbmUeb/browse
+https://data.stdl.ch/proj-soils/model-weights/heigvd/M2F_ViTlarge_best_mIoU_iter_160000.pth
