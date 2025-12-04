@@ -1,1 +1,1 @@
-https://sftpgo.stdl.ch/web/client/pubshares/zMJcebJqsmWsqeMJ6vw9WK/browse
+https://data.stdl.ch/proj-soils/model-weights/mix16/best_mIoU_iter_428628.pth
